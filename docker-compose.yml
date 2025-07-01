@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=coffeehub_db
+      - POSTGRES_USER=coffeehub_user
+      - POSTGRES_PASSWORD=coffeehub_password
+    ports:
+      - "5433:5432"
+
+  web:
+    build: ./coffeehub_backend  # <--- Linha alterada
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./coffeehub_backend:/code # <--- Linha alterada
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://coffeehub_user:coffeehub_password@db:5432/coffeehub_db
+
+volumes:
+  pgdata:
+
