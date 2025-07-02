@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'produtores',
     'insumos',
     'atividades',
+    "producao",
+    "monitoramento",
 ]
 
 MIDDLEWARE = [
