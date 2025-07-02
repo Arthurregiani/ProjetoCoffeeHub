@@ -13,10 +13,10 @@ services:
       - "5433:5432"
 
   web:
-    build: ./coffeehub_backend  # <--- Linha alterada
+    build: ./coffeehub_backend  
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./coffeehub_backend:/code # <--- Linha alterada
+      - ./coffeehub_backend:/code 
     ports:
       - "8000:8000"
     depends_on:
