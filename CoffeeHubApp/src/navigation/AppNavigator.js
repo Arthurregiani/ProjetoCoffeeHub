@@ -12,7 +12,7 @@ import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
-import PropriedadesScreen from '../screens/propriedades/PropriedadesScreen';
+import PropriedadesNavigator from './PropriedadesNavigator';
 import AtividadesScreen from '../screens/atividades/AtividadesScreen';
 import RelatoriosScreen from '../screens/relatorios/RelatoriosScreen';
 import MoreMenuScreen from '../screens/mais/MoreMenuScreen';
@@ -52,7 +52,7 @@ function MainTabsNavigator() {
       })}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Propriedades" component={PropriedadesScreen} />
+      <Tab.Screen name="Propriedades" component={PropriedadesNavigator} />
       <Tab.Screen name="Atividades" component={AtividadesScreen} />
       <Tab.Screen name="Relatórios" component={RelatoriosScreen} />
       <Tab.Screen name="Mais" component={MoreMenuScreen} />
@@ -119,4 +119,5 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
+
 

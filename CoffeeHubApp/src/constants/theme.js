@@ -15,6 +15,9 @@ export const COLORS = {
   text: '#212121',
   textSecondary: '#757575',
   border: '#E0E0E0',
+  white: '#FFFFFF',
+  lightGray: '#F5F5F5',
+  gray: '#757575',
   
   // Estados
   success: '#4CAF50',
@@ -49,3 +52,4 @@ export const FONTS = {
   medium: 'System',
   bold: 'System',
 };
+
