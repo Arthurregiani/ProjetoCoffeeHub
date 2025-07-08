@@ -53,6 +53,34 @@ coverage.xml
 *.log
 local_settings.py
 db.sqlite3
+db.sqlite3-journal
+
+# Django migrations backup
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Django static files
+/static/
+/staticfiles/
+/media/
+
+# Django secret key and sensitive settings
+secret_key.txt
+.env.django
+
+# Django cache
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.Python
+
+# Django session files
+sessions/
+
+# Django local development
+.vscode/settings.json
+.vscode/launch.json
 
 # Flask stuff:
 instance/
@@ -174,7 +202,25 @@ yarn-error.*
 *.jsbundle
 
 # CocoaPods
-/ios/Pods/
+*/ios/Pods/
+*/ios/Podfile.lock
+*/ios/build/
+*/ios/DerivedData/
+*/ios/*.xcworkspace
+*/ios/*.xcuserstate
+*/ios/xcuserdata/
+
+# Android
+*/android/app/build/
+*/android/build/
+*/android/.gradle/
+*/android/captures/
+*/android/local.properties
+*/android/app/release/
+*/android/app/debug/
+*/android/gradle.properties.backup
+*/android/keystore.properties
+*/android/key.properties
 
 # Expo
 .expo/
@@ -262,5 +308,86 @@ temp/
 *.sln
 *.sw?
 
-# Project specific
-# Add any project-specific files or directories here
+# Project specific - CoffeeHub
+# Django backend specific
+coffeehub_backend/static/
+coffeehub_backend/media/
+coffeehub_backend/logs/
+coffeehub_backend/celerybeat-schedule
+coffeehub_backend/celerybeat.pid
+
+# React Native app specific
+CoffeeHubApp/android/app/src/main/assets/
+CoffeeHubApp/ios/main.jsbundle
+CoffeeHubApp/ios/main.jsbundle.map
+
+# Development and testing
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+.tox/
+
+# Documentation
+docs/build/
+docs/_build/
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.django
+.env.react
+
+# Package managers
+node_modules/
+.npm
+.yarn-integrity
+yarn.lock
+package-lock.json
+
+# Build outputs
+build/
+dist/
+out/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# Add any other project-specific files or directories here
