@@ -7,6 +7,14 @@ import MeuPerfilScreen from '../screens/mais/MeuPerfilScreen';
 import EdicaoPerfilScreen from '../screens/mais/EdicaoPerfilScreen';
 import ConjugeScreen from '../screens/mais/ConjugeScreen';
 import CadastroConjugeScreen from '../screens/mais/CadastroConjugeScreen';
+import FuncionariosScreen from '../screens/mais/FuncionariosScreen';
+import CadastroFuncionarioScreen from '../screens/mais/CadastroFuncionarioScreen';
+import CertificacoesScreen from '../screens/mais/CertificacoesScreen';
+import CadastroCertificacaoScreen from '../screens/mais/CadastroCertificacaoScreen';
+import OperacoesFinanceirasScreen from '../screens/mais/OperacoesFinanceirasScreen';
+import RegistroOperacaoFinanceiraScreen from '../screens/mais/RegistroOperacaoFinanceiraScreen';
+import CapacitacoesScreen from '../screens/mais/CapacitacoesScreen';
+import CadastroCapacitacaoScreen from '../screens/mais/CadastroCapacitacaoScreen';
 import ConfiguracoesScreen from '../screens/mais/ConfiguracoesScreen';
 import AjudaSuporteScreen from '../screens/mais/AjudaSuporteScreen';
 
@@ -28,16 +36,27 @@ export default function MaisNavigator() {
       <Stack.Screen name="Conjuge" component={ConjugeScreen} />
       <Stack.Screen name="CadastroConjuge" component={CadastroConjugeScreen} />
       
+      {/* Telas de Funcionários */}
+      <Stack.Screen name="Funcionarios" component={FuncionariosScreen} />
+      <Stack.Screen name="CadastroFuncionario" component={CadastroFuncionarioScreen} />
+      
+      {/* Telas de Certificações */}
+      <Stack.Screen name="Certificacoes" component={CertificacoesScreen} />
+      <Stack.Screen name="CadastroCertificacao" component={CadastroCertificacaoScreen} />
+      
+      {/* Telas de Operações Financeiras */}
+      <Stack.Screen name="OperacoesFinanceiras" component={OperacoesFinanceirasScreen} />
+      <Stack.Screen name="RegistroOperacaoFinanceira" component={RegistroOperacaoFinanceiraScreen} />
+      
+      {/* Telas de Capacitações */}
+      <Stack.Screen name="Capacitacoes" component={CapacitacoesScreen} />
+      <Stack.Screen name="CadastroCapacitacao" component={CadastroCapacitacaoScreen} />
+      
       {/* Telas de Configurações e Suporte */}
       <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
       <Stack.Screen name="AjudaSuporte" component={AjudaSuporteScreen} />
       
       {/* Placeholder screens para funcionalidades futuras */}
-      <Stack.Screen 
-        name="Funcionarios" 
-        component={PlaceholderScreen} 
-        initialParams={{ title: 'Funcionários', message: 'Tela em desenvolvimento' }}
-      />
       <Stack.Screen 
         name="EquipesMaoObra" 
         component={PlaceholderScreen} 
@@ -64,24 +83,9 @@ export default function MaisNavigator() {
         initialParams={{ title: 'Variedades de Café', message: 'Tela em desenvolvimento' }}
       />
       <Stack.Screen 
-        name="Certificacoes" 
-        component={PlaceholderScreen} 
-        initialParams={{ title: 'Certificações', message: 'Tela em desenvolvimento' }}
-      />
-      <Stack.Screen 
         name="IndicadoresDesempenho" 
         component={PlaceholderScreen} 
         initialParams={{ title: 'Indicadores de Desempenho', message: 'Tela em desenvolvimento' }}
-      />
-      <Stack.Screen 
-        name="OperacoesFinanceiras" 
-        component={PlaceholderScreen} 
-        initialParams={{ title: 'Operações Financeiras', message: 'Tela em desenvolvimento' }}
-      />
-      <Stack.Screen 
-        name="Capacitacoes" 
-        component={PlaceholderScreen} 
-        initialParams={{ title: 'Capacitações', message: 'Tela em desenvolvimento' }}
       />
     </Stack.Navigator>
   );
