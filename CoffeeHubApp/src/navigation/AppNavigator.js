@@ -14,8 +14,8 @@ import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
 import PropriedadesNavigator from './PropriedadesNavigator';
 import AtividadesScreen from '../screens/atividades/AtividadesScreen';
-import RelatoriosScreen from '../screens/relatorios/RelatoriosScreen';
-import MoreMenuScreen from '../screens/mais/MoreMenuScreen';
+import RelatoriosNavigator from './RelatoriosNavigator';
+import MaisNavigator from './MaisNavigator';
 
 // Importe as constantes de tema
 import { COLORS } from '../constants/theme';
@@ -54,8 +54,8 @@ function MainTabsNavigator() {
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Propriedades" component={PropriedadesNavigator} />
       <Tab.Screen name="Atividades" component={AtividadesScreen} />
-      <Tab.Screen name="Relatórios" component={RelatoriosScreen} />
-      <Tab.Screen name="Mais" component={MoreMenuScreen} />
+      <Tab.Screen name="Relatórios" component={RelatoriosNavigator} />
+      <Tab.Screen name="Mais" component={MaisNavigator} />
     </Tab.Navigator>
   );
 }
