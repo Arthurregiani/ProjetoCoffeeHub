@@ -14,7 +14,7 @@ import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
 import PropriedadesNavigator from './PropriedadesNavigator';
 import AtividadesScreen from '../screens/atividades/AtividadesScreen';
-import RelatoriosNavigator from './RelatoriosNavigator';
+import ProducaoNavigator from './RelatoriosNavigator'; // Renomeado para ProducaoNavigator
 import MaisNavigator from './MaisNavigator';
 
 // Importe as constantes de tema
@@ -42,8 +42,8 @@ function MainTabsNavigator() {
             iconName = 'landscape';
           } else if (route.name === 'Atividades') {
             iconName = 'work';
-          } else if (route.name === 'Relatórios') {
-            iconName = 'bar-chart';
+          } else if (route.name === 'Produção') {
+            iconName = 'agriculture';
           } else if (route.name === 'Mais') {
             iconName = 'more-horiz';
           }
@@ -54,7 +54,7 @@ function MainTabsNavigator() {
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Propriedades" component={PropriedadesNavigator} />
       <Tab.Screen name="Atividades" component={AtividadesScreen} />
-      <Tab.Screen name="Relatórios" component={RelatoriosNavigator} />
+      <Tab.Screen name="Produção" component={ProducaoNavigator} options={{ title: 'Produção' }} />
       <Tab.Screen name="Mais" component={MaisNavigator} />
     </Tab.Navigator>
   );
@@ -69,10 +69,36 @@ function MainDrawerNavigator() {
         headerStyle: { backgroundColor: COLORS.primary },
         headerTintColor: COLORS.background,
         headerTitleStyle: { fontWeight: 'bold' },
+        drawerActiveTintColor: COLORS.primary,
+        drawerInactiveTintColor: COLORS.textSecondary,
       }}
     >
-      <Drawer.Screen name="Home" component={MainTabsNavigator} options={{ title: 'CoffeeHub' }} />
-      {/* Adicione outras telas que podem ser acessadas diretamente pelo Drawer aqui, se necessário */}
+      <Drawer.Screen 
+        name="Home" 
+        component={MainTabsNavigator} 
+        options={{ 
+          title: 'CoffeeHub',
+          drawerIcon: ({ color }) => <Icon name="home" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="MeuPerfil" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'MeuPerfil' }}
+        options={{ 
+          title: 'Meu Perfil',
+          drawerIcon: ({ color }) => <Icon name="person" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Configuracoes" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'Configuracoes' }}
+        options={{ 
+          title: 'Configurações',
+          drawerIcon: ({ color }) => <Icon name="settings" size={24} color={color} />
+        }} 
+      />
     </Drawer.Navigator>
   );
 }

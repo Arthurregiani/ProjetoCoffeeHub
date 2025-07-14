@@ -20,8 +20,10 @@ export default function DashboardScreen({ navigation }) {
   const [kpiData, setKpiData] = useState({
     producaoTotal: '1,250 sacas',
     talhoesAtivos: 8,
+    lotesAtivos: 15,
     pendencias: 3,
     climaAtual: '24°C - Ensolarado',
+    equipamentosOperacionais: 12,
   });
 
   // Dados simulados das atividades recentes
@@ -77,22 +79,37 @@ export default function DashboardScreen({ navigation }) {
   };
 
   const handleKPIPress = (kpiType) => {
-    Alert.alert('KPI', `Navegando para relatório de ${kpiType}`);
+    switch (kpiType) {
+      case 'lotes':
+        navigation.navigate('Lotes'); // Navegar para a futura tela de lotes
+        break;
+      case 'equipamentos':
+        navigation.navigate('Mais', { screen: 'Equipamentos' });
+        break;
+      case 'talhões':
+        navigation.navigate('Propriedades', { screen: 'PropriedadesList' });
+        break;
+      case 'pendências':
+        navigation.navigate('Atividades');
+        break;
+      default:
+        Alert.alert('KPI', `Navegando para relatório de ${kpiType}`);
+    }
   };
 
   const handleQuickActionPress = (action) => {
     switch (action) {
-      case 'nova_aplicacao':
-        navigation.navigate('NovaAplicacao');
+      case 'nova_atividade':
+        navigation.navigate('Atividades');
         break;
-      case 'registrar_colheita':
-        navigation.navigate('NovaColheita');
-        break;
-      case 'registrar_monitoramento':
-        navigation.navigate('NovoMonitoramento');
+      case 'ver_lotes':
+        navigation.navigate('Lotes'); // Futura tela de lotes
         break;
       case 'operacao_financeira':
-        navigation.navigate('NovaOperacaoFinanceira');
+        navigation.navigate('Mais', { screen: 'OperacoesFinanceiras' });
+        break;
+      case 'relatorios':
+        navigation.navigate('Produção');
         break;
       default:
         Alert.alert('Em desenvolvimento', `Funcionalidade ${action} em desenvolvimento`);
@@ -194,8 +211,10 @@ export default function DashboardScreen({ navigation }) {
           <View style={styles.kpiGrid}>
             {renderKPICard('Produção Total', kpiData.producaoTotal, () => handleKPIPress('produção'))}
             {renderKPICard('Talhões Ativos', kpiData.talhoesAtivos.toString(), () => handleKPIPress('talhões'))}
+            {renderKPICard('Lotes Ativos', kpiData.lotesAtivos.toString(), () => handleKPIPress('lotes'))}
             {renderKPICard('Pendências', kpiData.pendencias.toString(), () => handleKPIPress('pendências'))}
             {renderKPICard('Clima Atual', kpiData.climaAtual, () => handleKPIPress('clima'))}
+            {renderKPICard('Equipamentos OK', kpiData.equipamentosOperacionais.toString(), () => handleKPIPress('equipamentos'))}
           </View>
         </View>
 
@@ -203,10 +222,10 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ações Rápidas</Text>
           <View style={styles.quickActionsGrid}>
-            {renderQuickActionButton('Nova Aplicação', 'nova_aplicacao')}
-            {renderQuickActionButton('Registrar Colheita', 'registrar_colheita')}
-            {renderQuickActionButton('Registrar Monitoramento', 'registrar_monitoramento')}
+            {renderQuickActionButton('Nova Atividade', 'nova_atividade')}
+            {renderQuickActionButton('Ver Lotes', 'ver_lotes')}
             {renderQuickActionButton('Operação Financeira', 'operacao_financeira')}
+            {renderQuickActionButton('Relatórios', 'relatorios')}
           </View>
         </View>
 

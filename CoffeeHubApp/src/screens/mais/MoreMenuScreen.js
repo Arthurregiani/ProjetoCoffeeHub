@@ -5,22 +5,40 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../constants/theme';
 
-const menuItems = [
-  { id: '1', title: 'Meu Perfil', icon: 'person', screen: 'MeuPerfil' },
-  { id: '2', title: 'Cônjuge', icon: 'favorite', screen: 'Conjuge' },
-  { id: '3', title: 'Funcionários', icon: 'group', screen: 'Funcionarios' },
-  { id: '4', title: 'Equipes de Mão de Obra', icon: 'groups', screen: 'EquipesMaoObra' },
-  { id: '5', title: 'Equipamentos', icon: 'build', screen: 'Equipamentos' },
-  { id: '6', title: 'Insumos', icon: 'inventory-2', screen: 'Insumos' },
-  { id: '7', title: 'Estoque de Insumos', icon: 'warehouse', screen: 'EstoqueInsumos' },
-  { id: '8', title: 'Variedades de Café', icon: 'local-cafe', screen: 'VariedadesCafe' },
-  { id: '9', title: 'Certificações', icon: 'verified', screen: 'Certificacoes' },
-  { id: '10', title: 'Indicadores de Desempenho', icon: 'analytics', screen: 'IndicadoresDesempenho' },
-  { id: '11', title: 'Operações Financeiras', icon: 'account-balance-wallet', screen: 'OperacoesFinanceiras' },
-  { id: '12', title: 'Capacitações', icon: 'school', screen: 'Capacitacoes' },
-  { id: '13', title: 'Ajuda e Suporte', icon: 'help', screen: 'AjudaSuporte' },
-  { id: '14', title: 'Configurações', icon: 'settings', screen: 'Configuracoes' },
-  { id: '15', title: 'Sobre o App', icon: 'info', screen: 'SobreApp' },
+// Organizando o menu em categorias mais lógicas
+const menuSections = [
+  {
+    title: 'Perfil e Pessoas',
+    items: [
+      { id: '1', title: 'Meu Perfil', icon: 'person', screen: 'MeuPerfil' },
+      { id: '2', title: 'Cônjuge', icon: 'favorite', screen: 'Conjuge' },
+      { id: '3', title: 'Funcionários', icon: 'group', screen: 'Funcionarios' },
+    ]
+  },
+  {
+    title: 'Recursos e Gestão',
+    items: [
+      { id: '4', title: 'Equipamentos', icon: 'build', screen: 'Equipamentos' },
+      { id: '5', title: 'Insumos', icon: 'inventory-2', screen: 'Insumos' },
+      { id: '6', title: 'Operações Financeiras', icon: 'account-balance-wallet', screen: 'OperacoesFinanceiras' },
+    ]
+  },
+  {
+    title: 'Certificações e Qualidade',
+    items: [
+      { id: '7', title: 'Certificações', icon: 'verified', screen: 'Certificacoes' },
+      { id: '8', title: 'Capacitações', icon: 'school', screen: 'Capacitacoes' },
+      { id: '9', title: 'Variedades de Café', icon: 'local-cafe', screen: 'VariedadesCafe' },
+    ]
+  },
+  {
+    title: 'Suporte e Configurações',
+    items: [
+      { id: '10', title: 'Configurações', icon: 'settings', screen: 'Configuracoes' },
+      { id: '11', title: 'Ajuda e Suporte', icon: 'help', screen: 'AjudaSuporte' },
+      { id: '12', title: 'Sobre o App', icon: 'info', screen: 'SobreApp' },
+    ]
+  },
 ];
 
 export default function MoreMenuScreen() {
@@ -76,14 +94,22 @@ export default function MoreMenuScreen() {
     </TouchableOpacity>
   );
 
+  const renderSection = (section) => (
+    <View key={section.title} style={styles.section}>
+      <Text style={styles.sectionTitle}>{section.title}</Text>
+      {section.items.map(renderMenuItem)}
+    </View>
+  );
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mais</Text>
+        <Text style={styles.headerSubtitle}>Configurações e recursos adicionais</Text>
       </View>
 
       <View style={styles.menuContainer}>
-        {menuItems.map(renderMenuItem)}
+        {menuSections.map(renderSection)}
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -109,8 +135,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.background,
   },
+  headerSubtitle: {
+    fontSize: 16,
+    color: COLORS.background,
+    opacity: 0.8,
+    marginTop: 4,
+  },
   menuContainer: {
     padding: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 12,
+    marginLeft: 4,
   },
   menuItem: {
     flexDirection: 'row',
