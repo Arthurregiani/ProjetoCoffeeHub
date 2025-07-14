@@ -59,9 +59,22 @@ const ActivityTypeModal = ({ visible, onClose, onSelectType }) => {
   );
 };
 
-export default function AtividadesScreen({ navigation }) {
+export default function AtividadesScreen({ navigation, route }) {
   const [activeTab, setActiveTab] = useState('Monitoramento');
   const [modalVisible, setModalVisible] = useState(false);
+  
+  // Verificar se há parâmetros de lote pré-selecionado
+  const preSelectedLote = route?.params?.preSelectedLote;
+  const shouldOpenModal = route?.params?.shouldOpenModal;
+
+  // Abrir modal automaticamente se necessário
+  React.useEffect(() => {
+    if (shouldOpenModal) {
+      setModalVisible(true);
+      // Limpar os parâmetros para evitar abrir novamente
+      navigation.setParams({ shouldOpenModal: false });
+    }
+  }, [shouldOpenModal, navigation]);
 
   const tabs = ['Monitoramento', 'Insumos', 'Produção', 'Qualidade', 'Recursos', 'Financeiro'];
 

@@ -81,16 +81,25 @@ export default function DashboardScreen({ navigation }) {
   const handleKPIPress = (kpiType) => {
     switch (kpiType) {
       case 'lotes':
-        navigation.navigate('Lotes'); // Navegar para a futura tela de lotes
+        navigation.navigate('Lotes'); // Navegar para a tela de lotes
         break;
       case 'equipamentos':
-        navigation.navigate('Mais', { screen: 'Equipamentos' });
+        navigation.navigate('Equipamentos'); // Navegar diretamente via drawer
         break;
       case 'talhões':
         navigation.navigate('Propriedades', { screen: 'PropriedadesList' });
         break;
       case 'pendências':
         navigation.navigate('Atividades');
+        break;
+      case 'produção':
+        navigation.navigate('Produção');
+        break;
+      case 'clima':
+        Alert.alert('Clima', 'Funcionalidade de clima em desenvolvimento');
+        break;
+      case 'monitoramento':
+        navigation.navigate('Monitoramento');
         break;
       default:
         Alert.alert('KPI', `Navegando para relatório de ${kpiType}`);

@@ -14,8 +14,12 @@ import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
 import PropriedadesNavigator from './PropriedadesNavigator';
 import AtividadesScreen from '../screens/atividades/AtividadesScreen';
+import LotesNavigator from './LotesNavigator';
+import MonitoramentoNavigator from './MonitoramentoNavigator';
 import ProducaoNavigator from './RelatoriosNavigator'; // Renomeado para ProducaoNavigator
 import MaisNavigator from './MaisNavigator';
+import InsumosNavigator from './InsumosNavigator';
+import ProcessamentoNavigator from './ProcessamentoNavigator';
 
 // Importe as constantes de tema
 import { COLORS } from '../constants/theme';
@@ -42,6 +46,8 @@ function MainTabsNavigator() {
             iconName = 'landscape';
           } else if (route.name === 'Atividades') {
             iconName = 'work';
+          } else if (route.name === 'Lotes') {
+            iconName = 'inventory';
           } else if (route.name === 'Produção') {
             iconName = 'agriculture';
           } else if (route.name === 'Mais') {
@@ -54,6 +60,7 @@ function MainTabsNavigator() {
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Propriedades" component={PropriedadesNavigator} />
       <Tab.Screen name="Atividades" component={AtividadesScreen} />
+      <Tab.Screen name="Lotes" component={LotesNavigator} />
       <Tab.Screen name="Produção" component={ProducaoNavigator} options={{ title: 'Produção' }} />
       <Tab.Screen name="Mais" component={MaisNavigator} />
     </Tab.Navigator>
@@ -91,12 +98,81 @@ function MainDrawerNavigator() {
         }} 
       />
       <Drawer.Screen 
+        name="OperacoesFinanceiras" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'OperacoesFinanceiras' }}
+        options={{ 
+          title: 'Operações Financeiras',
+          drawerIcon: ({ color }) => <Icon name="attach-money" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Funcionarios" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'Funcionarios' }}
+        options={{ 
+          title: 'Funcionários',
+          drawerIcon: ({ color }) => <Icon name="people" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Monitoramento" 
+        component={MonitoramentoNavigator} 
+        options={{ 
+          title: 'Monitoramento',
+          drawerIcon: ({ color }) => <Icon name="visibility" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Insumos" 
+        component={InsumosNavigator} 
+        options={{ 
+          title: 'Insumos',
+          drawerIcon: ({ color }) => <Icon name="inventory-2" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Processamento" 
+        component={ProcessamentoNavigator} 
+        options={{ 
+          title: 'Processamento',
+          drawerIcon: ({ color }) => <Icon name="local-cafe" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Equipamentos" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'Equipamentos' }}
+        options={{ 
+          title: 'Equipamentos',
+          drawerIcon: ({ color }) => <Icon name="build" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Certificacoes" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'Certificacoes' }}
+        options={{ 
+          title: 'Certificações',
+          drawerIcon: ({ color }) => <Icon name="verified" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
         name="Configuracoes" 
         component={MaisNavigator} 
         initialParams={{ screen: 'Configuracoes' }}
         options={{ 
           title: 'Configurações',
           drawerIcon: ({ color }) => <Icon name="settings" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="AjudaSuporte" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'AjudaSuporte' }}
+        options={{ 
+          title: 'Ajuda & Suporte',
+          drawerIcon: ({ color }) => <Icon name="help" size={24} color={color} />
         }} 
       />
     </Drawer.Navigator>

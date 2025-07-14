@@ -12,6 +12,9 @@ import LotesScreen from '../screens/lot/LotesScreen';
 import LoteDetalhesScreen from '../screens/lot/LoteDetalhesScreen';
 import RegistroColheitaScreen from '../screens/lot/RegistroColheitaScreen';
 
+// Telas de Monitoramento
+import MonitoramentoScreen from '../screens/monitoramento/MonitoramentoScreen';
+
 const Stack = createStackNavigator();
 
 // Agora focado em produção, lotes e rastreabilidade
