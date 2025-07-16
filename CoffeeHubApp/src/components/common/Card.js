@@ -1,37 +1,74 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { COLORS, SIZES } from '../../constants/theme';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { COLORS, SIZES, SHADOWS, ACCESSIBILITY, ANIMATIONS } from '../../constants/theme';
 
 const Card = ({ 
   children, 
   onPress, 
   style, 
   padding = SIZES.padding, 
-  elevation = 2,
+  shadow = 'medium',
   backgroundColor = COLORS.surface,
   borderRadius = SIZES.radius,
+  accessibilityLabel,
   ...props 
 }) => {
+  const animatedValue = React.useRef(new Animated.Value(1)).current;
   const CardComponent = onPress ? TouchableOpacity : View;
   
+  const handlePressIn = () => {
+    if (onPress) {
+      Animated.timing(animatedValue, {
+        toValue: 0.98,
+        duration: ANIMATIONS.duration.fast,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const handlePressOut = () => {
+    if (onPress) {
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: ANIMATIONS.duration.fast,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+  
+  const cardStyle = [
+    styles.card,
+    SHADOWS[shadow] || SHADOWS.medium,
+    {
+      padding,
+      backgroundColor,
+      borderRadius,
+    },
+    style
+  ];
+  
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.95}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole="button"
+        {...props}
+      >
+        <Animated.View style={[{ transform: [{ scale: animatedValue }] }, cardStyle]}>
+          {children}
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  }
+  
   return (
-    <CardComponent
-      style={[
-        styles.card,
-        {
-          padding,
-          elevation,
-          backgroundColor,
-          borderRadius,
-        },
-        style
-      ]}
-      onPress={onPress}
-      activeOpacity={onPress ? 0.7 : 1}
-      {...props}
-    >
+    <View style={cardStyle} {...props}>
       {children}
-    </CardComponent>
+    </View>
   );
 };
 
@@ -58,45 +95,46 @@ const InfoCard = ({ title, subtitle, content, onPress, ...props }) => (
 
 const styles = StyleSheet.create({
   card: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: SIZES.margin / 2,
+    marginBottom: SIZES.marginSmall,
   },
   statCard: {
     width: '48%',
     minHeight: 80,
     justifyContent: 'center',
+    minWidth: ACCESSIBILITY.touchTarget.minWidth,
   },
   statTitle: {
     fontSize: SIZES.caption,
     color: COLORS.textSecondary,
-    marginBottom: 4,
+    marginBottom: SIZES.paddingSmall / 2,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   statValue: {
     fontSize: SIZES.h4,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: COLORS.primary,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h4,
   },
   infoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SIZES.paddingSmall,
   },
   infoTitle: {
     fontSize: SIZES.body,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: COLORS.text,
     flex: 1,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   infoSubtitle: {
     fontSize: SIZES.caption,
     color: COLORS.textSecondary,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   infoContent: {
-    marginTop: 4,
+    marginTop: SIZES.paddingSmall / 2,
   },
 });
 

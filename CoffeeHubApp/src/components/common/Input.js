@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { COLORS, SIZES } from '../../constants/theme';
+import { View, TextInput, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { COLORS, SIZES, SHADOWS, ACCESSIBILITY, ANIMATIONS } from '../../constants/theme';
 
 const Input = ({
   label,
@@ -22,10 +22,21 @@ const Input = ({
   variant = 'default',
   size = 'medium',
   required = false,
+  accessibilityLabel,
+  accessibilityHint,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isSecureVisible, setIsSecureVisible] = useState(secureTextEntry);
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
+
+  const animateFocus = (focused) => {
+    Animated.timing(animatedValue, {
+      toValue: focused ? 1 : 0,
+      duration: ANIMATIONS.duration.fast,
+      useNativeDriver: false,
+    }).start();
+  };
 
   const getContainerStyle = () => {
     let baseStyle = [styles.container];
@@ -115,8 +126,22 @@ const Input = ({
           secureTextEntry={isSecureVisible}
           keyboardType={keyboardType}
           maxLength={maxLength}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={() => {
+            setIsFocused(true);
+            animateFocus(true);
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+            animateFocus(false);
+          }}
+          accessibilityLabel={accessibilityLabel || label}
+          accessibilityHint={accessibilityHint || helperText}
+          accessibilityRole="textfield"
+          accessibilityState={{
+            disabled,
+            invalid: !!error,
+            required,
+          }}
           {...props}
         />
         
@@ -124,6 +149,9 @@ const Input = ({
           <TouchableOpacity
             style={styles.rightIconContainer}
             onPress={toggleSecureVisibility}
+            accessibilityLabel={isSecureVisible ? 'Ocultar senha' : 'Mostrar senha'}
+            accessibilityRole="button"
+            accessibilityHint="Toca para alternar a visibilidade da senha"
           >
             <Text style={styles.secureToggle}>
               {isSecureVisible ? '👁️' : '👁️‍🗨️'}
@@ -135,6 +163,8 @@ const Input = ({
           <TouchableOpacity
             style={styles.rightIconContainer}
             onPress={onRightIconPress}
+            accessibilityRole="button"
+            accessibilityLabel="Ação do campo"
           >
             {rightIcon}
           </TouchableOpacity>
@@ -159,8 +189,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: SIZES.body,
     fontWeight: '500',
-    color: COLORS.textPrimary,
-    marginBottom: 6,
+    color: COLORS.text,
+    marginBottom: SIZES.paddingSmall / 2,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   required: {
     color: COLORS.error,
@@ -170,6 +201,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: SIZES.radius,
     borderWidth: 1,
+    ...SHADOWS.small,
+    minHeight: ACCESSIBILITY.touchTarget.minHeight,
   },
   defaultContainer: {
     borderColor: COLORS.border,
@@ -198,23 +231,24 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: COLORS.textPrimary,
+    color: COLORS.text,
     fontSize: SIZES.body,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   smallInput: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    minHeight: 36,
+    paddingVertical: SIZES.paddingSmall,
+    paddingHorizontal: SIZES.paddingSmall + 4,
+    minHeight: SIZES.buttonHeightSmall,
   },
   mediumInput: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    minHeight: 44,
+    paddingVertical: SIZES.paddingSmall + 4,
+    paddingHorizontal: SIZES.padding,
+    minHeight: SIZES.inputHeight,
   },
   largeInput: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    minHeight: 52,
+    paddingVertical: SIZES.padding,
+    paddingHorizontal: SIZES.padding + 4,
+    minHeight: SIZES.buttonHeightLarge,
   },
   multilineInput: {
     minHeight: 80,
@@ -224,12 +258,16 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   leftIconContainer: {
-    marginLeft: 12,
-    marginRight: 8,
+    marginLeft: SIZES.paddingSmall + 4,
+    marginRight: SIZES.paddingSmall,
   },
   rightIconContainer: {
-    marginRight: 12,
-    marginLeft: 8,
+    marginRight: SIZES.paddingSmall + 4,
+    marginLeft: SIZES.paddingSmall,
+    minHeight: ACCESSIBILITY.touchTarget.minHeight,
+    minWidth: ACCESSIBILITY.touchTarget.minWidth,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   secureToggle: {
     fontSize: 18,
@@ -237,12 +275,14 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: SIZES.caption,
     color: COLORS.error,
-    marginTop: 4,
+    marginTop: SIZES.paddingSmall / 2,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   helperText: {
     fontSize: SIZES.caption,
     color: COLORS.textSecondary,
-    marginTop: 4,
+    marginTop: SIZES.paddingSmall / 2,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
 });
 

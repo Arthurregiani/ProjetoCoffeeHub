@@ -1,14 +1,15 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Animated } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { COLORS, SIZES, SHADOWS, ACCESSIBILITY, ANIMATIONS } from '../../constants/theme';
 
-const Button = ({
+const GradientButton = ({
   title,
   onPress,
   style,
   textStyle,
   disabled = false,
-  variant = 'primary',
+  gradient = COLORS.gradientPrimary,
   size = 'medium',
   icon,
   iconPosition = 'left',
@@ -33,29 +34,9 @@ const Button = ({
       useNativeDriver: true,
     }).start();
   };
+
   const getButtonStyle = () => {
     let baseStyle = [styles.button];
-    
-    // Variantes de cor
-    switch (variant) {
-      case 'primary':
-        baseStyle.push(styles.primaryButton);
-        break;
-      case 'secondary':
-        baseStyle.push(styles.secondaryButton);
-        break;
-      case 'outline':
-        baseStyle.push(styles.outlineButton);
-        break;
-      case 'ghost':
-        baseStyle.push(styles.ghostButton);
-        break;
-      case 'danger':
-        baseStyle.push(styles.dangerButton);
-        break;
-      default:
-        baseStyle.push(styles.primaryButton);
-    }
     
     // Tamanhos
     switch (size) {
@@ -82,26 +63,6 @@ const Button = ({
   
   const getTextStyle = () => {
     let baseStyle = [styles.buttonText];
-    
-    switch (variant) {
-      case 'primary':
-        baseStyle.push(styles.primaryText);
-        break;
-      case 'secondary':
-        baseStyle.push(styles.secondaryText);
-        break;
-      case 'outline':
-        baseStyle.push(styles.outlineText);
-        break;
-      case 'ghost':
-        baseStyle.push(styles.ghostText);
-        break;
-      case 'danger':
-        baseStyle.push(styles.dangerText);
-        break;
-      default:
-        baseStyle.push(styles.primaryText);
-    }
     
     switch (size) {
       case 'small':
@@ -149,6 +110,20 @@ const Button = ({
     
     return <Text style={getTextStyle()}>{title}</Text>;
   };
+
+  const buttonContent = (
+    <Animated.View style={[{ transform: [{ scale: animatedValue }] }, getButtonStyle(), style]}>
+      {renderContent()}
+    </Animated.View>
+  );
+
+  if (disabled) {
+    return (
+      <View style={[getButtonStyle(), styles.disabledContainer, style]}>
+        {renderContent()}
+      </View>
+    );
+  }
   
   return (
     <TouchableOpacity
@@ -156,15 +131,20 @@ const Button = ({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      activeOpacity={0.9}
       accessibilityLabel={accessibilityLabel || title}
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || loading }}
       {...props}
     >
-      <Animated.View style={[{ transform: [{ scale: animatedValue }] }, getButtonStyle(), style]}>
-        {renderContent()}
-      </Animated.View>
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[getButtonStyle(), style]}
+      >
+        {buttonContent}
+      </LinearGradient>
     </TouchableOpacity>
   );
 };
@@ -182,34 +162,13 @@ const styles = StyleSheet.create({
   buttonContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     fontWeight: '600',
     textAlign: 'center',
+    color: COLORS.white,
     lineHeight: ACCESSIBILITY.text.lineHeight * 16,
-  },
-  
-  // Variantes de cor
-  primaryButton: {
-    backgroundColor: COLORS.primary,
-    ...SHADOWS.medium,
-  },
-  secondaryButton: {
-    backgroundColor: COLORS.secondary,
-    ...SHADOWS.medium,
-  },
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    ...SHADOWS.small,
-  },
-  ghostButton: {
-    backgroundColor: 'transparent',
-  },
-  dangerButton: {
-    backgroundColor: COLORS.error,
-    ...SHADOWS.medium,
   },
   
   // Tamanhos
@@ -230,26 +189,12 @@ const styles = StyleSheet.create({
   },
   
   // Estados
-  disabledButton: {
+  disabledContainer: {
     backgroundColor: COLORS.disabled,
     opacity: 0.6,
   },
-  
-  // Estilos de texto
-  primaryText: {
-    color: COLORS.white,
-  },
-  secondaryText: {
-    color: COLORS.white,
-  },
-  outlineText: {
-    color: COLORS.primary,
-  },
-  ghostText: {
-    color: COLORS.primary,
-  },
-  dangerText: {
-    color: COLORS.white,
+  disabledButton: {
+    opacity: 0.6,
   },
   
   // Tamanhos de texto
@@ -268,4 +213,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Button;
+export default GradientButton;
