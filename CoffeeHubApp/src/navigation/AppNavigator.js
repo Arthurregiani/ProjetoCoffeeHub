@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,7 +13,7 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
 import PropriedadesNavigator from './PropriedadesNavigator';
-import AtividadesScreen from '../screens/atividades/AtividadesScreen';
+import AtividadesNavigator from './AtividadesNavigator';
 import LotesNavigator from './LotesNavigator';
 import MonitoramentoNavigator from './MonitoramentoNavigator';
 import ProducaoNavigator from './RelatoriosNavigator'; // Renomeado para ProducaoNavigator
@@ -50,8 +50,6 @@ function MainTabsNavigator() {
             iconName = 'inventory';
           } else if (route.name === 'Produção') {
             iconName = 'agriculture';
-          } else if (route.name === 'Mais') {
-            iconName = 'more-horiz';
           }
           return <Icon name={iconName} size={size} color={color} />;
         },
@@ -59,10 +57,9 @@ function MainTabsNavigator() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Propriedades" component={PropriedadesNavigator} />
-      <Tab.Screen name="Atividades" component={AtividadesScreen} />
+      <Tab.Screen name="Atividades" component={AtividadesNavigator} />
       <Tab.Screen name="Lotes" component={LotesNavigator} />
       <Tab.Screen name="Produção" component={ProducaoNavigator} options={{ title: 'Produção' }} />
-      <Tab.Screen name="Mais" component={MaisNavigator} />
     </Tab.Navigator>
   );
 }
@@ -173,6 +170,33 @@ function MainDrawerNavigator() {
         options={{ 
           title: 'Ajuda & Suporte',
           drawerIcon: ({ color }) => <Icon name="help" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Conjuge" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'Conjuge' }}
+        options={{ 
+          title: 'Cônjuge',
+          drawerIcon: ({ color }) => <Icon name="favorite" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="Capacitacoes" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'Capacitacoes' }}
+        options={{ 
+          title: 'Capacitações',
+          drawerIcon: ({ color }) => <Icon name="school" size={24} color={color} />
+        }} 
+      />
+      <Drawer.Screen 
+        name="VariedadesCafe" 
+        component={MaisNavigator} 
+        initialParams={{ screen: 'VariedadesCafe' }}
+        options={{ 
+          title: 'Variedades de Café',
+          drawerIcon: ({ color }) => <Icon name="local-cafe" size={24} color={color} />
         }} 
       />
     </Drawer.Navigator>

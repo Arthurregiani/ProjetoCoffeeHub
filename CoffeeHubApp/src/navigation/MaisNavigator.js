@@ -18,6 +18,9 @@ import CadastroCapacitacaoScreen from '../screens/mais/CadastroCapacitacaoScreen
 import ConfiguracoesScreen from '../screens/mais/ConfiguracoesScreen';
 import AjudaSuporteScreen from '../screens/mais/AjudaSuporteScreen';
 
+// Importar navegador dos Insumos
+import InsumosNavigator from './InsumosNavigator';
+
 // Placeholder screens para as funcionalidades que ainda serão implementadas
 import PlaceholderScreen from '../screens/PlaceholderScreen';
 
@@ -67,10 +70,9 @@ export default function MaisNavigator() {
         component={PlaceholderScreen} 
         initialParams={{ title: 'Equipamentos', message: 'Tela em desenvolvimento' }}
       />
-      <Stack.Screen 
+<Stack.Screen 
         name="Insumos" 
-        component={PlaceholderScreen} 
-        initialParams={{ title: 'Insumos', message: 'Tela em desenvolvimento' }}
+        component={InsumosNavigator} 
       />
       <Stack.Screen 
         name="EstoqueInsumos" 

@@ -109,8 +109,15 @@ export default function AtividadesScreen({ navigation, route }) {
   const currentActivities = activitiesData[activeTab] || [];
 
   const handleActivityPress = (activity) => {
-    console.log('Detalhes da atividade:', activity.type);
-    // Navegar para tela de detalhes da atividade
+    // Navegar para tela de detalhes da atividade com navegação contextual
+    navigation.navigate('ActivityDetails', {
+      activity: activity,
+      relatedItems: {
+        talhao: activity.location,
+        lote: activity.loteId || null,
+        propriedade: activity.propriedadeId || null
+      }
+    });
   };
 
   const handleAddActivity = () => {
@@ -119,8 +126,30 @@ export default function AtividadesScreen({ navigation, route }) {
 
   const handleSelectActivityType = (activityType) => {
     setModalVisible(false);
-    console.log('Tipo selecionado:', activityType.name);
-    // Navegar para a tela de registro do tipo de atividade selecionado
+    
+    // Navegar para a tela específica baseada no tipo de atividade
+    let targetScreen;
+    switch (activityType.id) {
+      case 'harvest':
+        targetScreen = 'ColheitaActivity';
+        break;
+      case 'application':
+        targetScreen = 'AplicacaoActivity';
+        break;
+      case 'irrigation':
+        targetScreen = 'IrrigacaoActivity';
+        break;
+      case 'monitoring':
+        targetScreen = 'MonitoramentoActivity';
+        break;
+      default:
+        targetScreen = 'CreateActivity';
+    }
+    
+    navigation.navigate(targetScreen, {
+      activityType: activityType,
+      preSelectedLote: preSelectedLote
+    });
   };
 
   return (

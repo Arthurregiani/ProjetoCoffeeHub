@@ -112,13 +112,25 @@ export default function DashboardScreen({ navigation }) {
         navigation.navigate('Atividades');
         break;
       case 'ver_lotes':
-        navigation.navigate('Lotes'); // Futura tela de lotes
+        navigation.navigate('Lotes');
         break;
       case 'operacao_financeira':
-        navigation.navigate('Mais', { screen: 'OperacoesFinanceiras' });
+        navigation.navigate('OperacoesFinanceiras');
         break;
       case 'relatorios':
         navigation.navigate('Produção');
+        break;
+      case 'meu_perfil':
+        navigation.navigate('MeuPerfil');
+        break;
+      case 'funcionarios':
+        navigation.navigate('Funcionarios');
+        break;
+      case 'insumos':
+        navigation.navigate('Insumos');
+        break;
+      case 'certificacoes':
+        navigation.navigate('Certificacoes');
         break;
       default:
         Alert.alert('Em desenvolvimento', `Funcionalidade ${action} em desenvolvimento`);
@@ -235,6 +247,10 @@ export default function DashboardScreen({ navigation }) {
             {renderQuickActionButton('Ver Lotes', 'ver_lotes')}
             {renderQuickActionButton('Operação Financeira', 'operacao_financeira')}
             {renderQuickActionButton('Relatórios', 'relatorios')}
+            {renderQuickActionButton('Meu Perfil', 'meu_perfil')}
+            {renderQuickActionButton('Funcionários', 'funcionarios')}
+            {renderQuickActionButton('Insumos', 'insumos')}
+            {renderQuickActionButton('Certificações', 'certificacoes')}
           </View>
         </View>
 
