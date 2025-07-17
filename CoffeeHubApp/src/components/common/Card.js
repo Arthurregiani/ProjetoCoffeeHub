@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { COLORS, SIZES, SHADOWS, ACCESSIBILITY, ANIMATIONS } from '../../constants/theme';
+import { COLORS, SIZES, SHADOWS, ACCESSIBILITY, ANIMATIONS, SPACING, LAYOUT, TYPOGRAPHY } from '../../constants/theme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const Card = ({ 
   children, 
@@ -13,6 +14,10 @@ const Card = ({
   accessibilityLabel,
   ...props 
 }) => {
+  const responsive = useResponsive();
+  
+  // Use smaller padding on small screens
+  const cardPadding = responsive.isSmallScreen ? SPACING.sm : padding;
   const animatedValue = React.useRef(new Animated.Value(1)).current;
   const CardComponent = onPress ? TouchableOpacity : View;
   
@@ -40,7 +45,8 @@ const Card = ({
     styles.card,
     SHADOWS[shadow] || SHADOWS.medium,
     {
-      padding,
+      minWidth: 140,
+      padding: cardPadding,
       backgroundColor,
       borderRadius,
     },
@@ -72,69 +78,93 @@ const Card = ({
   );
 };
 
-const StatCard = ({ title, value, onPress, titleStyle, valueStyle, ...props }) => (
-  <Card onPress={onPress} style={styles.statCard} {...props}>
-    <Text style={[styles.statTitle, titleStyle]}>{title}</Text>
-    <Text style={[styles.statValue, valueStyle]}>{value}</Text>
-  </Card>
-);
+const StatCard = ({ title, value, onPress, titleStyle, valueStyle, ...props }) => {
+  const responsive = useResponsive();
+  
+  const statCardStyle = [
+    styles.statCard,
+    responsive.isSmallScreen && {
+      padding: SPACING.sm,
+      minHeight: 70,
+    }
+  ];
+  
+  return (
+    <Card onPress={onPress} style={statCardStyle} {...props}>
+      <Text style={[styles.statTitle, titleStyle]}>{title}</Text>
+      <Text style={[styles.statValue, valueStyle]}>{value}</Text>
+    </Card>
+  );
+};
 
-const InfoCard = ({ title, subtitle, content, onPress, ...props }) => (
-  <Card onPress={onPress} {...props}>
-    <View style={styles.infoHeader}>
-      <Text style={styles.infoTitle}>{title}</Text>
-      {subtitle && <Text style={styles.infoSubtitle}>{subtitle}</Text>}
-    </View>
-    {content && (
-      <View style={styles.infoContent}>
-        {content}
+const InfoCard = ({ title, subtitle, content, onPress, ...props }) => {
+  const responsive = useResponsive();
+  
+  const infoCardStyle = [
+    responsive.isSmallScreen && {
+      padding: SPACING.sm,
+    }
+  ];
+  
+  return (
+    <Card onPress={onPress} style={infoCardStyle} {...props}>
+      <View style={styles.infoHeader}>
+        <Text style={styles.infoTitle}>{title}</Text>
+        {subtitle && <Text style={styles.infoSubtitle}>{subtitle}</Text>}
       </View>
-    )}
-  </Card>
-);
+      {content && (
+        <View style={styles.infoContent}>
+          {content}
+        </View>
+      )}
+    </Card>
+  );
+};
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: SIZES.marginSmall,
+    ...LAYOUT.card.container,
+    marginBottom: SPACING.cardMargin,
   },
   statCard: {
     width: '48%',
     minHeight: 80,
     justifyContent: 'center',
-    minWidth: ACCESSIBILITY.touchTarget.minWidth,
+    minWidth: 140,
+    padding: SPACING.cardPadding,
   },
   statTitle: {
     fontSize: SIZES.caption,
     color: COLORS.textSecondary,
-    marginBottom: SIZES.paddingSmall / 2,
-    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
+    marginBottom: SPACING.content,
+    lineHeight: TYPOGRAPHY.lineHeights.normal * SIZES.caption,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
   },
   statValue: {
     fontSize: SIZES.h4,
-    fontWeight: '700',
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
     color: COLORS.primary,
-    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h4,
+    lineHeight: TYPOGRAPHY.lineHeights.tight * SIZES.h4,
   },
   infoHeader: {
+    ...LAYOUT.card.header,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SIZES.paddingSmall,
   },
   infoTitle: {
-    fontSize: SIZES.body,
-    fontWeight: '600',
-    color: COLORS.text,
+    ...LAYOUT.hierarchy.cardTitle,
     flex: 1,
-    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
+    marginBottom: 0,
   },
   infoSubtitle: {
     fontSize: SIZES.caption,
     color: COLORS.textSecondary,
-    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
+    lineHeight: TYPOGRAPHY.lineHeights.normal * SIZES.caption,
+    fontWeight: TYPOGRAPHY.fontWeights.regular,
   },
   infoContent: {
-    marginTop: SIZES.paddingSmall / 2,
+    ...LAYOUT.card.content,
   },
 });
 

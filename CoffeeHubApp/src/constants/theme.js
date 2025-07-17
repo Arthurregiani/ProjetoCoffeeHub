@@ -97,7 +97,7 @@ export const SIZES = {
   animationDuration: 300,
 };
 
-// Espacamentos padronizados
+// Espacamentos padronizados - Enhanced for better visual hierarchy
 export const SPACING = {
   xs: 4,
   sm: 8,
@@ -105,6 +105,32 @@ export const SPACING = {
   lg: 24,
   xl: 32,
   xxl: 48,
+  xxxl: 64,
+  
+  // Spacings específicos para diferentes contextos
+  section: 32,        // Espaçamento entre seções principais
+  component: 24,      // Espaçamento entre componentes
+  element: 16,        // Espaçamento entre elementos
+  item: 12,          // Espaçamento entre itens em listas
+  content: 8,        // Espaçamento interno de conteúdo
+  
+  // Padding específico para containers
+  containerPadding: 20,
+  cardPadding: 16,
+  listPadding: 12,
+  
+  // Margins específicos
+  cardMargin: 12,
+  listItemMargin: 8,
+  buttonMargin: 16,
+  
+  // Espaçamentos para headers e footers
+  headerPadding: 24,
+  footerPadding: 32,
+  
+  // Espaçamentos para search e filtros
+  searchPadding: 16,
+  filterPadding: 12,
 };
 
 // Tipografia
@@ -254,5 +280,292 @@ export const RESPONSIVE = {
   
   // Função para verificar se é desktop
   isDesktop: (width) => width >= 1200,
+  
+  // Grid columns por breakpoint
+  gridColumns: {
+    small: 1,
+    medium: 2,
+    large: 3,
+    xlarge: 4,
+  },
+  
+  // Espaçamentos responsivos
+  spacing: {
+    small: {
+      xs: 3,
+      sm: 6,
+      md: 12,
+      lg: 18,
+      xl: 24,
+    },
+    medium: {
+      xs: 4,
+      sm: 8,
+      md: 16,
+      lg: 24,
+      xl: 32,
+    },
+    large: {
+      xs: 5,
+      sm: 10,
+      md: 20,
+      lg: 30,
+      xl: 40,
+    },
+    xlarge: {
+      xs: 6,
+      sm: 12,
+      md: 24,
+      lg: 36,
+      xl: 48,
+    },
+  },
+  
+  // Tamanhos de fonte responsivos
+  fontSize: {
+    small: {
+      multiplier: 0.9,
+      h1: 28,
+      h2: 22,
+      h3: 18,
+      h4: 16,
+      body: 14,
+      caption: 12,
+    },
+    medium: {
+      multiplier: 1.0,
+      h1: 32,
+      h2: 24,
+      h3: 20,
+      h4: 18,
+      body: 16,
+      caption: 14,
+    },
+    large: {
+      multiplier: 1.1,
+      h1: 36,
+      h2: 26,
+      h3: 22,
+      h4: 20,
+      body: 18,
+      caption: 16,
+    },
+    xlarge: {
+      multiplier: 1.2,
+      h1: 40,
+      h2: 28,
+      h3: 24,
+      h4: 22,
+      body: 20,
+      caption: 18,
+    },
+  },
+  
+  // Utilities para cálculos responsivos
+  getScreenType: (width) => {
+    if (width < 576) return 'small';
+    if (width < 768) return 'medium';
+    if (width < 992) return 'large';
+    return 'xlarge';
+  },
+  
+  // Função para obter espaçamento responsivo
+  getSpacing: (width, spacingKey = 'md') => {
+    const screenType = RESPONSIVE.getScreenType(width);
+    return RESPONSIVE.spacing[screenType][spacingKey] || RESPONSIVE.spacing.medium[spacingKey];
+  },
+  
+  // Função para obter tamanho de fonte responsivo
+  getFontSize: (width, fontKey = 'body') => {
+    const screenType = RESPONSIVE.getScreenType(width);
+    return RESPONSIVE.fontSize[screenType][fontKey] || RESPONSIVE.fontSize.medium[fontKey];
+  },
+  
+  // Função para obter número de colunas responsivo
+  getColumns: (width) => {
+    const screenType = RESPONSIVE.getScreenType(width);
+    return RESPONSIVE.gridColumns[screenType] || RESPONSIVE.gridColumns.medium;
+  },
+};
+
+// Layout guidelines para consistência visual
+export const LAYOUT = {
+  // Estrutura de seções
+  section: {
+    paddingHorizontal: SPACING.containerPadding,
+    paddingVertical: SPACING.section,
+    marginBottom: SPACING.component,
+  },
+  
+  // Headers de seções
+  sectionHeader: {
+    marginBottom: SPACING.element,
+    paddingBottom: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderLight,
+  },
+  
+  // Títulos e hierarquia
+  hierarchy: {
+    mainTitle: {
+      fontSize: SIZES.h1,
+      fontWeight: TYPOGRAPHY.fontWeights.bold,
+      color: COLORS.text,
+      marginBottom: SPACING.element,
+      lineHeight: TYPOGRAPHY.lineHeights.tight * SIZES.h1,
+    },
+    sectionTitle: {
+      fontSize: SIZES.h2,
+      fontWeight: TYPOGRAPHY.fontWeights.bold,
+      color: COLORS.text,
+      marginBottom: SPACING.item,
+      lineHeight: TYPOGRAPHY.lineHeights.tight * SIZES.h2,
+    },
+    subTitle: {
+      fontSize: SIZES.h3,
+      fontWeight: TYPOGRAPHY.fontWeights.semiBold,
+      color: COLORS.text,
+      marginBottom: SPACING.content,
+      lineHeight: TYPOGRAPHY.lineHeights.normal * SIZES.h3,
+    },
+    cardTitle: {
+      fontSize: SIZES.h4,
+      fontWeight: TYPOGRAPHY.fontWeights.semiBold,
+      color: COLORS.primary,
+      marginBottom: SPACING.xs,
+      lineHeight: TYPOGRAPHY.lineHeights.normal * SIZES.h4,
+    },
+  },
+  
+  // Listas e itens
+  list: {
+    container: {
+      paddingHorizontal: SPACING.containerPadding,
+    },
+    item: {
+      paddingVertical: SPACING.item,
+      paddingHorizontal: SPACING.listPadding,
+      marginBottom: SPACING.listItemMargin,
+      borderRadius: SIZES.radius,
+      backgroundColor: COLORS.surface,
+      ...SHADOWS.card,
+    },
+    separator: {
+      height: SPACING.content,
+      backgroundColor: COLORS.borderLight,
+    },
+  },
+  
+  // Cards
+  card: {
+    container: {
+      backgroundColor: COLORS.surface,
+      borderRadius: SIZES.radius,
+      padding: SPACING.cardPadding,
+      marginBottom: SPACING.cardMargin,
+      ...SHADOWS.card,
+    },
+    header: {
+      marginBottom: SPACING.item,
+      paddingBottom: SPACING.content,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.borderLight,
+    },
+    content: {
+      marginBottom: SPACING.content,
+    },
+    footer: {
+      marginTop: SPACING.item,
+      paddingTop: SPACING.content,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.borderLight,
+    },
+  },
+  
+  // Search e filtros
+  search: {
+    container: {
+      paddingHorizontal: SPACING.containerPadding,
+      paddingVertical: SPACING.searchPadding,
+      backgroundColor: COLORS.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.borderLight,
+      ...SHADOWS.small,
+    },
+    input: {
+      backgroundColor: COLORS.surfaceVariant,
+      borderRadius: SIZES.radius,
+      paddingHorizontal: SPACING.element,
+      paddingVertical: SPACING.item,
+      marginBottom: SPACING.content,
+    },
+  },
+  
+  // Filtros
+  filter: {
+    container: {
+      paddingHorizontal: SPACING.containerPadding,
+      paddingVertical: SPACING.filterPadding,
+      backgroundColor: COLORS.background,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.borderLight,
+    },
+    button: {
+      paddingHorizontal: SPACING.element,
+      paddingVertical: SPACING.content,
+      marginRight: SPACING.content,
+      borderRadius: SIZES.radiusLarge,
+      backgroundColor: COLORS.surface,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+    },
+    activeButton: {
+      backgroundColor: COLORS.primary,
+      borderColor: COLORS.primary,
+    },
+  },
+  
+  // Headers e footers
+  header: {
+    container: {
+      paddingHorizontal: SPACING.containerPadding,
+      paddingVertical: SPACING.headerPadding,
+      backgroundColor: COLORS.primary,
+      borderBottomLeftRadius: SIZES.radiusLarge,
+      borderBottomRightRadius: SIZES.radiusLarge,
+      ...SHADOWS.medium,
+    },
+    title: {
+      fontSize: SIZES.h1,
+      fontWeight: TYPOGRAPHY.fontWeights.bold,
+      color: COLORS.white,
+      lineHeight: TYPOGRAPHY.lineHeights.tight * SIZES.h1,
+    },
+    subtitle: {
+      fontSize: SIZES.body,
+      color: COLORS.whiteOpacity,
+      lineHeight: TYPOGRAPHY.lineHeights.normal * SIZES.body,
+    },
+  },
+  
+  footer: {
+    container: {
+      paddingHorizontal: SPACING.containerPadding,
+      paddingVertical: SPACING.footerPadding,
+      backgroundColor: COLORS.surface,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.borderLight,
+    },
+  },
+  
+  // Grids
+  grid: {
+    container: {
+      paddingHorizontal: SPACING.containerPadding,
+    },
+    item: {
+      marginBottom: SPACING.item,
+    },
+  },
 };
 

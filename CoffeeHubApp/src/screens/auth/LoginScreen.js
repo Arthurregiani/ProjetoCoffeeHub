@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Alert, ScrollView, Dimensions, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS } from '../../constants/theme';
+import { COLORS, SIZES, SHADOWS, SPACING, ACCESSIBILITY } from '../../constants/theme';
+import { Card } from '../../components/common/Card';
+import { Button } from '../../components/common/Button';
+import { Input } from '../../components/common/Input';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -49,189 +54,181 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoPlaceholder}>
-            <Icon name="local-cafe" size={60} color={COLORS.primary} />
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+      
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header com gradiente visual */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoPlaceholder}>
+              <Icon name="local-cafe" size={60} color={COLORS.primary} />
+            </View>
+            <Text style={styles.appName}>CoffeeHub</Text>
+            <Text style={styles.tagline}>Gestão Inteligente de Café</Text>
           </View>
-          <Text style={styles.appName}>CoffeeHub</Text>
         </View>
 
-        <Text style={styles.welcomeText}>Bem-vindo de volta!</Text>
-        <Text style={styles.subtitle}>Faça login para continuar</Text>
+        {/* Formulário de Login */}
+        <Card style={styles.formCard} shadow="large">
+          <Text style={styles.welcomeText}>Bem-vindo de volta!</Text>
+          <Text style={styles.subtitle}>Faça login para continuar</Text>
 
-        {/* Campo de E-mail */}
-        <View style={styles.inputContainer}>
-          <Icon name="email" size={24} color={COLORS.textSecondary} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="E-mail"
-            placeholderTextColor={COLORS.textSecondary}
-            keyboardType="email-address"
-            autoCapitalize="none"
+          <Input
+            label="E-mail"
             value={email}
             onChangeText={setEmail}
+            placeholder="Digite seu e-mail"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            leftIcon={<Icon name="email" size={20} color={COLORS.textSecondary} />}
+            accessibilityLabel="Campo de e-mail"
+            accessibilityHint="Digite seu endereço de e-mail"
           />
-        </View>
 
-        {/* Campo de Senha */}
-        <View style={styles.inputContainer}>
-          <Icon name="lock" size={24} color={COLORS.textSecondary} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor={COLORS.textSecondary}
-            secureTextEntry={!showPassword}
+          <Input
+            label="Senha"
             value={password}
             onChangeText={setPassword}
+            placeholder="Digite sua senha"
+            secureTextEntry={true}
+            leftIcon={<Icon name="lock" size={20} color={COLORS.textSecondary} />}
+            accessibilityLabel="Campo de senha"
+            accessibilityHint="Digite sua senha"
           />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-            <Icon name={showPassword ? "visibility" : "visibility-off"} size={24} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-        </View>
 
-        {/* Esqueceu a senha */}
-        <TouchableOpacity style={styles.forgotPasswordButton} onPress={handleForgotPassword}>
-          <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
-        </TouchableOpacity>
+          <Button
+            title="Esqueceu a senha?"
+            variant="ghost"
+            size="small"
+            onPress={handleForgotPassword}
+            style={styles.forgotPasswordButton}
+            accessibilityLabel="Esqueceu a senha"
+          />
 
-        {/* Botão de Login */}
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Entrar</Text>
-        </TouchableOpacity>
+          <Button
+            title="Entrar"
+            onPress={handleLogin}
+            style={styles.loginButton}
+            accessibilityLabel="Fazer login"
+            accessibilityHint="Toque para fazer login na aplicação"
+          />
 
-        {/* Botão de Desenvolvimento - Entrar sem autenticação */}
-        <TouchableOpacity style={styles.skipAuthButton} onPress={handleSkipAuth}>
-          <Icon name="developer-mode" size={20} color={COLORS.textSecondary} />
-          <Text style={styles.skipAuthText}>Entrar sem autenticação (Dev)</Text>
-        </TouchableOpacity>
+          <Button
+            title="Entrar sem autenticação (Dev)"
+            variant="outline"
+            size="small"
+            onPress={handleSkipAuth}
+            style={styles.skipAuthButton}
+            icon={<Icon name="developer-mode" size={16} color={COLORS.primary} />}
+            accessibilityLabel="Modo desenvolvedor"
+          />
+        </Card>
 
         {/* Link para Cadastro */}
         <View style={styles.registerContainer}>
           <Text style={styles.registerText}>Não tem uma conta?</Text>
-          <TouchableOpacity onPress={handleRegister}>
-            <Text style={styles.registerButtonText}> Cadastre-se</Text>
-          </TouchableOpacity>
+          <Button
+            title="Cadastre-se"
+            variant="ghost"
+            size="small"
+            onPress={handleRegister}
+            style={styles.registerButton}
+            accessibilityLabel="Criar nova conta"
+          />
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    backgroundColor: COLORS.background,
+    paddingHorizontal: SPACING.md,
   },
-  container: {
-    flex: 1,
+  header: {
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: COLORS.background,
+    paddingVertical: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
   },
   logoPlaceholder: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.primaryOpacity,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: SPACING.md,
+    ...SHADOWS.medium,
   },
   appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: SIZES.h1,
+    fontWeight: '700',
     color: COLORS.primary,
+    marginBottom: SPACING.xs,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h1,
+  },
+  tagline: {
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
+  },
+  formCard: {
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    borderRadius: SIZES.radiusLarge,
   },
   welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
-    marginBottom: 10,
+    fontSize: SIZES.h2,
+    fontWeight: '700',
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h2,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: SIZES.body,
     color: COLORS.textSecondary,
-    marginBottom: 40,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    height: 50,
-    borderColor: COLORS.textSecondary,
-    borderWidth: 1,
-    borderRadius: 10,
-    marginBottom: 20,
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.surface,
-  },
-  icon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    color: COLORS.textPrimary,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    padding: 5,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   forgotPasswordButton: {
     alignSelf: 'flex-end',
-    marginBottom: 30,
-  },
-  forgotPasswordText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: 'bold',
+    marginBottom: SPACING.sm,
   },
   loginButton: {
-    width: '100%',
-    height: 50,
-    backgroundColor: COLORS.primary,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  loginButtonText: {
-    color: COLORS.background,
-    fontSize: 18,
-    fontWeight: 'bold',
+    marginBottom: SPACING.md,
   },
   skipAuthButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    backgroundColor: COLORS.surface,
-    marginBottom: 20,
-  },
-  skipAuthText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    marginLeft: 8,
+    marginBottom: SPACING.md,
   },
   registerContainer: {
     flexDirection: 'row',
-    marginTop: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SPACING.lg,
   },
   registerText: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
-  registerButtonText: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
+  registerButton: {
+    marginLeft: SPACING.xs,
   },
 });

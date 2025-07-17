@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import { COLORS, SIZES } from '../../constants/theme';
+import { COLORS, SIZES, SPACING, LAYOUT, TYPOGRAPHY, SHADOWS } from '../../constants/theme';
 
 const LoteCard = ({ lote, onPress }) => (
   <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -97,36 +97,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    padding: SIZES.padding,
+    padding: SPACING.containerPadding,
   },
   title: {
-    fontSize: SIZES.h2,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SIZES.margin,
+    ...LAYOUT.hierarchy.sectionTitle,
   },
   listContent: {
-    paddingBottom: SIZES.padding,
+    paddingBottom: SPACING.content,
   },
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    marginBottom: SIZES.margin,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    ...LAYOUT.card.container,
   },
   cardTitle: {
-    fontSize: SIZES.h4,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+    ...LAYOUT.hierarchy.cardTitle,
   },
   cardDetail: {
     fontSize: SIZES.body,
     color: COLORS.textSecondary,
+    lineHeight: TYPOGRAPHY.lineHeights.normal * SIZES.body,
   },
 });
 

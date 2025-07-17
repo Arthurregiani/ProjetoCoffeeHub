@@ -1,6 +1,5 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Animated } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { COLORS, SIZES, SHADOWS, ACCESSIBILITY, ANIMATIONS } from '../../constants/theme';
 
 const GradientButton = ({
@@ -9,7 +8,7 @@ const GradientButton = ({
   style,
   textStyle,
   disabled = false,
-  gradient = COLORS.gradientPrimary,
+  backgroundColor = COLORS.primary,
   size = 'medium',
   icon,
   iconPosition = 'left',
@@ -111,12 +110,6 @@ const GradientButton = ({
     return <Text style={getTextStyle()}>{title}</Text>;
   };
 
-  const buttonContent = (
-    <Animated.View style={[{ transform: [{ scale: animatedValue }] }, getButtonStyle(), style]}>
-      {renderContent()}
-    </Animated.View>
-  );
-
   if (disabled) {
     return (
       <View style={[getButtonStyle(), styles.disabledContainer, style]}>
@@ -135,16 +128,12 @@ const GradientButton = ({
       accessibilityLabel={accessibilityLabel || title}
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || loading }}
+      style={[getButtonStyle(), { backgroundColor }, style]}
       {...props}
     >
-      <LinearGradient
-        colors={gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={[getButtonStyle(), style]}
-      >
-        {buttonContent}
-      </LinearGradient>
+      <Animated.View style={[{ transform: [{ scale: animatedValue }] }]}>
+        {renderContent()}
+      </Animated.View>
     </TouchableOpacity>
   );
 };

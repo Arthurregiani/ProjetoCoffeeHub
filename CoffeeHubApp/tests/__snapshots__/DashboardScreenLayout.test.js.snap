@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DashboardScreen KPI Grid 2x2 Layout Test Desktop (1440px) (1440x900) should use 2x2 grid layout: Desktop (1440px)-2x2 1`] = `null`;
+
+exports[`DashboardScreen KPI Grid 2x2 Layout Test Mobile Small (320px) (320x568) should use 1x4 grid layout: Mobile Small (320px)-1x4 1`] = `null`;
+
+exports[`DashboardScreen KPI Grid 2x2 Layout Test Mobile Standard (375px) (375x667) should use 1x4 grid layout: Mobile Standard (375px)-1x4 1`] = `null`;
+
+exports[`DashboardScreen KPI Grid 2x2 Layout Test Tablet Landscape (1024px) (1024x768) should use 2x2 grid layout: Tablet Landscape (1024px)-2x2 1`] = `null`;
+
+exports[`DashboardScreen KPI Grid 2x2 Layout Test Tablet Portrait (768px) (768x1024) should use 2x2 grid layout: Tablet Portrait (768px)-2x2 1`] = `null`;

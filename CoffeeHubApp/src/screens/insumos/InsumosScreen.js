@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,47 +11,116 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
+  Animated,
+  Dimensions,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { COLORS, SIZES } from '../../constants/theme';
 
-const InsumosScreen = ({ navigation }) => {
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Constantes para melhor organização
+const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+};
+
+const ANIMATION_DURATION = 200;
+
+// Constantes para ícones de categoria
+const CATEGORY_ICONS = {
+  'Fertilizante': 'eco',
+  'Agroquímico': 'science',
+  'Sementes': 'grass',
+  'Implementos': 'build',
+  'Outros': 'category',
+};
+
+// Componente Card reutilizável removido - agora usando TouchableOpacity com styles de card
+
+// Componente Button reutilizável
+const Button = ({ 
+  title, 
+  onPress, 
+  variant = 'primary', 
+  size = 'medium', 
+  icon, 
+  disabled = false,
+  style,
+  ...props 
+}) => {
+  const scaleValue = new Animated.Value(1);
+  
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+  
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+  
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={disabled}
+      style={[styles.button, styles[`button${variant.charAt(0).toUpperCase() + variant.slice(1)}`], 
+             styles[`buttonSize${size.charAt(0).toUpperCase() + size.slice(1)}`], 
+             disabled && styles.buttonDisabled, style]}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      {...props}
+    >
+      <Animated.View style={[styles.buttonContent, { transform: [{ scale: scaleValue }] }]}> 
+        {icon && <Icon name={icon} size={size === 'small' ? 16 : 20} color={variant === 'primary' ? COLORS.white : COLORS.primary} style={styles.buttonIcon} />} 
+        <Text style={[styles.buttonText, styles[`buttonText${variant.charAt(0).toUpperCase() + variant.slice(1)}`], styles[`buttonTextSize${size.charAt(0).toUpperCase() + size.slice(1)}`]]}> 
+          {title} 
+        </Text> 
+      </Animated.View> 
+    </TouchableOpacity> 
+  );
+};
+
+
+
+
+function InsumosScreen({ navigation }) {
+  // Estado inicial dos insumos
   const [insumos, setInsumos] = useState([
     {
       id: 1,
       nome: 'NPK 20-05-20',
       categoria: 'Fertilizante',
-      custoUnitario: 85.50,
+      custoUnitario: 85.5,
       unidadeMedida: 'kg',
       codigoRastreio: 'FERT001',
-      fabricante: 'Fertilizantes Brasil',
-      dataFabricacao: '2024-01-15',
-      dataValidade: '2026-01-15',
-      saldo: 500,
-      nivelMinimo: 100,
+      fabricante: 'Yara',
+      dataFabricacao: '2024-01-10',
+      dataValidade: '2025-01-10',
+      saldo: 120,
+      nivelMinimo: 30,
       status: 'Ativo',
-      observacoes: 'Fertilizante básico para café',
+      observacoes: 'Fertilizante para fase vegetativa',
     },
     {
       id: 2,
-      nome: 'Fungicida Cobox',
+      nome: 'Glifosato',
       categoria: 'Agroquímico',
-      custoUnitario: 125.00,
-      unidadeMedida: 'L',
-      codigoRastreio: 'AGRO001',
-      fabricante: 'Defensivos Agrícolas',
-      dataFabricacao: '2024-02-10',
-      dataValidade: '2025-02-10',
-      saldo: 50,
-      nivelMinimo: 20,
-      status: 'Ativo',
-      observacoes: 'Controle de ferrugem do café',
-    },
-    {
-      id: 3,
-      nome: 'Herbicida Roundup',
-      categoria: 'Agroquímico',
-      custoUnitario: 95.00,
+      custoUnitario: 45.0,
       unidadeMedida: 'L',
       codigoRastreio: 'AGRO002',
       fabricante: 'Monsanto',
@@ -66,6 +135,9 @@ const InsumosScreen = ({ navigation }) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingInsumo, setEditingInsumo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('Todas');
   const [novoInsumo, setNovoInsumo] = useState({
     nome: '',
     categoria: 'Fertilizante',
@@ -78,6 +150,7 @@ const InsumosScreen = ({ navigation }) => {
     nivelMinimo: '',
     observacoes: '',
   });
+  const [formErrors, setFormErrors] = useState({});
 
   const categorias = ['Fertilizante', 'Agroquímico', 'Sementes', 'Implementos', 'Outros'];
   const unidadesMedida = ['kg', 'L', 'unidade', 'saca', 'tonelada'];
@@ -189,50 +262,88 @@ const InsumosScreen = ({ navigation }) => {
     }
   };
 
-  const renderInsumoCard = (insumo) => (
-    <TouchableOpacity
-      key={insumo.id}
-      style={styles.insumoCard}
-      onPress={() => handleInsumoPress(insumo)}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.nomeContainer}>
-          <Text style={styles.nomeText}>{insumo.nome}</Text>
-          <View style={[styles.categoriaTag, { backgroundColor: getCategoriaColor(insumo.categoria) }]}>
-            <Text style={styles.categoriaText}>{insumo.categoria}</Text>
-          </View>
-        </View>
-        <View style={styles.statusContainer}>
-          <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(insumo.status) }]} />
-          <Text style={[styles.statusText, { color: getStatusColor(insumo.status) }]}>
-            {insumo.status}
-          </Text>
-        </View>
-      </View>
+  const getFilteredInsumos = () => {
+    return insumos.filter(insumo => {
+      const matchesSearch = insumo.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           insumo.fabricante.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           insumo.categoria.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory === 'Todas' || insumo.categoria === filterCategory;
+      return matchesSearch && matchesCategory;
+    });
+  };
 
-      <View style={styles.infoRow}>
-        <Icon name="inventory" size={16} color={COLORS.textSecondary} />
-        <Text style={styles.infoText}>
-          {insumo.saldo} {insumo.unidadeMedida} (Mín: {insumo.nivelMinimo})
-        </Text>
-      </View>
+  const filteredInsumos = getFilteredInsumos();
+  const categoriaOptions = ['Todas', ...categorias];
 
-      <View style={styles.infoRow}>
-        <Icon name="attach-money" size={16} color={COLORS.textSecondary} />
-        <Text style={styles.infoText}>R$ {insumo.custoUnitario.toFixed(2)}/{insumo.unidadeMedida}</Text>
-      </View>
+  const renderInsumoCard = (insumo) => {
+    const scaleValue = new Animated.Value(1);
+    
+    const handlePressIn = () => {
+      Animated.spring(scaleValue, {
+        toValue: 0.96,
+        useNativeDriver: true,
+      }).start();
+    };
+    
+    const handlePressOut = () => {
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+    };
+    
+    return (
+      <Animated.View key={insumo.id} style={{ transform: [{ scale: scaleValue }] }}>
+        <TouchableOpacity
+          style={styles.insumoCard}
+          onPress={() => handleInsumoPress(insumo)}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={0.9}
+          accessibilityRole="button"
+          accessibilityLabel={`Insumo ${insumo.nome}`}
+          accessibilityHint="Toque para ver detalhes e opções"
+        >
+            <View style={styles.cardHeader}>
+              <View style={styles.nomeContainer}>
+                <Text style={styles.nomeText}>{insumo.nome}</Text>
+                <View style={[styles.categoriaTag, { backgroundColor: getCategoriaColor(insumo.categoria) }]}>
+                  <Text style={styles.categoriaText}>{insumo.categoria}</Text>
+                </View>
+              </View>
+              <View style={styles.statusContainer}>
+                <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(insumo.status) }]} />
+                <Text style={[styles.statusText, { color: getStatusColor(insumo.status) }]}>
+                  {insumo.status}
+                </Text>
+              </View>
+            </View>
 
-      <View style={styles.infoRow}>
-        <Icon name="business" size={16} color={COLORS.textSecondary} />
-        <Text style={styles.infoText}>{insumo.fabricante}</Text>
-      </View>
+            <View style={styles.infoRow}>
+              <Icon name="inventory" size={18} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>
+                {insumo.saldo} {insumo.unidadeMedida} (Mín: {insumo.nivelMinimo})
+              </Text>
+            </View>
 
-      <View style={styles.cardFooter}>
-        <Text style={styles.codigoText}>{insumo.codigoRastreio}</Text>
-        <Text style={styles.validadeText}>Val: {insumo.dataValidade}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+            <View style={styles.infoRow}>
+              <Icon name="attach-money" size={18} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>R$ {insumo.custoUnitario.toFixed(2)}/{insumo.unidadeMedida}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Icon name="business" size={18} color={COLORS.textSecondary} />
+              <Text style={styles.infoText}>{insumo.fabricante}</Text>
+            </View>
+
+            <View style={styles.cardFooter}>
+              <Text style={styles.codigoText}>{insumo.codigoRastreio}</Text>
+              <Text style={styles.validadeText}>Val: {insumo.dataValidade}</Text>
+            </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
 
   const renderSelector = (options, selectedValue, onSelect, placeholder) => (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorContainer}>
@@ -256,46 +367,146 @@ const InsumosScreen = ({ navigation }) => {
     </ScrollView>
   );
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
+  }, []);
+
+  const totalInventoryValue = insumos.reduce((total, insumo) => total + (insumo.custoUnitario * insumo.saldo), 0);
+  const lowStockCount = insumos.filter(i => i.status === 'Baixo Estoque').length;
+  const activeCount = insumos.filter(i => i.status === 'Ativo').length;
+
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color={COLORS.white} />
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+      {/* Header minimalista */}
+      <View style={styles.headerMinimal}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()}
+          style={styles.headerButton}
+          accessibilityLabel="Voltar"
+          accessibilityRole="button"
+        >
+          <Icon name="arrow-back" size={24} color={COLORS.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Insumos</Text>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Icon name="add" size={24} color={COLORS.white} />
+        <Text style={styles.headerTitleMinimal}>Insumos</Text>
+        <TouchableOpacity 
+          onPress={() => setModalVisible(true)}
+          style={styles.headerButton}
+          accessibilityLabel="Adicionar insumo"
+          accessibilityRole="button"
+        >
+          <Icon name="add" size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
-      {/* Estatísticas */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{insumos.length}</Text>
-          <Text style={styles.statLabel}>Total</Text>
+      {/* Pesquisa e Filtros */}
+      <View style={styles.searchFilterSectionMinimal}>
+        <View style={styles.searchContainerMinimal}>
+          <Icon name="search" size={20} color={COLORS.textSecondary} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInputMinimal}
+            placeholder="Pesquisar insumos..."
+            placeholderTextColor={COLORS.textSecondary}
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            accessibilityLabel="Campo de pesquisa"
+          />
+          {searchTerm.length > 0 && (
+            <TouchableOpacity
+              style={styles.clearSearchButton}
+              onPress={() => setSearchTerm('')}
+              accessibilityLabel="Limpar pesquisa"
+            >
+              <Icon name="clear" size={20} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{insumos.filter(i => i.status === 'Ativo').length}</Text>
-          <Text style={styles.statLabel}>Ativos</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{insumos.filter(i => i.status === 'Baixo Estoque').length}</Text>
-          <Text style={styles.statLabel}>Baixo Estoque</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>
-            R$ {insumos.reduce((total, insumo) => total + (insumo.custoUnitario * insumo.saldo), 0).toFixed(0)}
-          </Text>
-          <Text style={styles.statLabel}>Valor Total</Text>
-        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScrollViewMinimal}>
+          {categoriaOptions.map((categoria) => (
+            <TouchableOpacity
+              key={categoria}
+              style={[
+                styles.filterButtonMinimal,
+                filterCategory === categoria && styles.filterButtonSelectedMinimal
+              ]}
+              onPress={() => setFilterCategory(categoria)}
+              accessibilityLabel={`Filtrar por ${categoria}`}
+              accessibilityRole="button"
+            >
+              <Text style={[
+                styles.filterButtonTextMinimal,
+                filterCategory === categoria && styles.filterButtonTextSelectedMinimal
+              ]}>
+                {categoria}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* Lista de Insumos */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Insumos Cadastrados</Text>
-          {insumos.map(renderInsumoCard)}
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
+        {/* Alerta de baixo estoque minimalista */}
+        {lowStockCount > 0 && (
+          <View style={styles.lowStockAlertMinimal}>
+            <Icon name="warning" size={16} color={COLORS.warning} style={{marginRight: 4}} />
+            <Text style={styles.lowStockAlertTextMinimal}>
+              {lowStockCount} {lowStockCount === 1 ? 'item' : 'itens'} com estoque baixo
+            </Text>
+          </View>
+        )}
+
+        {/* Lista de Insumos */}
+        <View style={styles.listSection}>
+          <View style={styles.listHeader}>
+            <Text style={styles.sectionTitle}>Insumos Cadastrados</Text>
+            <Text style={styles.resultCount}>
+              {filteredInsumos.length} de {insumos.length} insumos
+            </Text>
+          </View>
+          {filteredInsumos.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Icon name="inventory" size={64} color={COLORS.textSecondary} />
+              <Text style={styles.emptyStateTitle}>
+                {searchTerm || filterCategory !== 'Todas' 
+                  ? 'Nenhum insumo encontrado' 
+                  : 'Nenhum insumo cadastrado'}
+              </Text>
+              <Text style={styles.emptyStateText}>
+                {searchTerm || filterCategory !== 'Todas' 
+                  ? 'Tente ajustar os filtros ou termos de pesquisa' 
+                  : 'Comece adicionando seu primeiro insumo'}
+              </Text>
+              <Button
+                title="Adicionar Insumo"
+                onPress={() => setModalVisible(true)}
+                icon="add"
+                variant="primary"
+                size="medium"
+                style={styles.emptyStateButton}
+              />
+            </View>
+          ) : (
+            <View style={styles.listContent}>
+              {filteredInsumos.map((insumo) => renderInsumoCard(insumo))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -430,6 +641,7 @@ const InsumosScreen = ({ navigation }) => {
       </Modal>
 
       {/* Floating Action Button */}
+
       <TouchableOpacity
         style={styles.fab}
         onPress={() => setModalVisible(true)}
@@ -438,92 +650,284 @@ const InsumosScreen = ({ navigation }) => {
       </TouchableOpacity>
     </SafeAreaView>
   );
-};
-
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: SIZES.padding,
-    backgroundColor: COLORS.primary,
-  },
-  headerTitle: {
-    fontSize: SIZES.h3,
-    fontWeight: 'bold',
-    color: COLORS.white,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    padding: SIZES.padding,
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    backgroundColor: COLORS.surface,
-    padding: SIZES.padding / 2,
-    borderRadius: SIZES.radius,
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 2,
-    elevation: 1,
-  },
-  statValue: {
-    fontSize: SIZES.h4,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-  statLabel: {
-    fontSize: SIZES.small,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  section: {
-    padding: SIZES.padding,
-  },
-  sectionTitle: {
-    fontSize: SIZES.h4,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SIZES.margin,
-  },
+  // Card-like styles now directly applied to TouchableOpacity
   insumoCard: {
     backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius,
     padding: SIZES.padding,
-    marginBottom: SIZES.margin,
-    elevation: 2,
+    marginHorizontal: SIZES.padding,
+    marginBottom: SIZES.paddingSmall,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: SIZES.paddingSmall,
   },
   nomeContainer: {
     flex: 1,
+    marginRight: SIZES.paddingSmall,
   },
   nomeText: {
-    fontSize: SIZES.body,
+    fontSize: SIZES.h4,
     fontWeight: 'bold',
     color: COLORS.text,
     marginBottom: 4,
   },
   categoriaTag: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+    paddingVertical: 4,
+    borderRadius: SIZES.radiusSmall,
     alignSelf: 'flex-start',
+  },
+  listSection: {
+    flex: 1,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.paddingSmall,
+  },
+  sectionTitle: {
+    fontSize: SIZES.h4,
+    fontWeight: 'bold',
+    color: COLORS.text,
+  },
+  resultCount: {
+    fontSize: SIZES.caption,
+    color: COLORS.textSecondary,
+  },
+  listContent: {
+    paddingBottom: SIZES.paddingLarge,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SIZES.paddingLarge,
+    marginTop: SIZES.paddingLarge,
+  },
+  emptyStateTitle: {
+    fontSize: SIZES.h3,
+    fontWeight: 'bold',
+    color: COLORS.textSecondary,
+    marginTop: SIZES.padding,
+    marginBottom: SIZES.paddingSmall,
+  },
+  emptyStateText: {
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SIZES.paddingLarge,
+  },
+  emptyStateButton: {
+    marginTop: SIZES.paddingSmall,
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surfaceVariant,
+  },
+  searchIcon: {
+    marginRight: SIZES.paddingSmall,
+  },
+  clearSearchButton: {
+    padding: 4,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  modalBody: {
+    flex: 1,
+    padding: SIZES.padding,
+  },
+  inputLabel: {
+    fontSize: SIZES.body,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SIZES.paddingSmall,
+    marginTop: SIZES.paddingSmall,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius,
+    padding: SIZES.paddingSmall,
+    fontSize: SIZES.body,
+    backgroundColor: COLORS.surface,
+    marginBottom: SIZES.paddingSmall,
+  },
+  selectorContainer: {
+    marginBottom: SIZES.paddingSmall,
+  },
+  selectorButton: {
+    paddingHorizontal: SIZES.padding,
+    paddingVertical: SIZES.paddingSmall,
+    borderRadius: SIZES.radius,
+    backgroundColor: COLORS.lightGray,
+    marginRight: SIZES.paddingSmall,
+  },
+  selectorButtonSelected: {
+    backgroundColor: COLORS.primary,
+  },
+  selectorButtonText: {
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+  },
+  selectorButtonTextSelected: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+  },
+  // Button styles
+  button: {
+    borderRadius: SIZES.radius,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  buttonPrimary: {
+    backgroundColor: COLORS.primary,
+  },
+  buttonSecondary: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  buttonSizeMedium: {
+    height: SIZES.buttonHeight,
+    paddingHorizontal: SIZES.padding,
+  },
+  buttonSizeSmall: {
+    height: SIZES.buttonHeightSmall,
+    paddingHorizontal: SIZES.paddingSmall,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    fontSize: SIZES.body,
+    fontWeight: '600',
+  },
+  buttonTextPrimary: {
+    color: COLORS.white,
+  },
+  buttonTextSecondary: {
+    color: COLORS.primary,
+  },
+  buttonTextSizeMedium: {
+    fontSize: SIZES.body,
+  },
+  buttonTextSizeSmall: {
+    fontSize: SIZES.caption,
+  },
+  buttonIcon: {
+    marginRight: SIZES.paddingSmall,
+  },
+  buttonDisabled: {
+    backgroundColor: COLORS.disabled,
+    opacity: 0.6,
+  },
+  headerMinimal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SIZES.padding,
+    paddingTop: 18,
+    paddingBottom: 10,
+    backgroundColor: COLORS.background,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+  },
+  headerTitleMinimal: {
+    fontSize: SIZES.h3,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    letterSpacing: 0.5,
+  },
+  searchFilterSectionMinimal: {
+    paddingHorizontal: SIZES.padding,
+    paddingTop: 10,
+    paddingBottom: 6,
+    backgroundColor: COLORS.background,
+  },
+  searchContainerMinimal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: SIZES.radius,
+    paddingHorizontal: 10,
+    marginBottom: 8,
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+  },
+  searchInputMinimal: {
+    flex: 1,
+    fontSize: SIZES.body,
+    color: COLORS.text,
+    paddingVertical: 10,
+  },
+  filterScrollViewMinimal: {
+    flexGrow: 0,
+    marginBottom: 2,
+  },
+  filterButtonMinimal: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 16,
+    backgroundColor: COLORS.lightGray,
+    marginRight: 8,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  filterButtonSelectedMinimal: {
+    backgroundColor: COLORS.primary,
+  },
+  filterButtonTextMinimal: {
+    fontSize: SIZES.caption,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  filterButtonTextSelectedMinimal: {
+    color: COLORS.white,
+    fontWeight: '600',
+  },
+  lowStockAlertMinimal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 193, 7, 0.08)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginHorizontal: SIZES.padding,
+    marginTop: 2,
+    marginBottom: 6,
+    alignSelf: 'flex-start',
+  },
+  lowStockAlertTextMinimal: {
+    color: COLORS.warning,
+    fontSize: SIZES.caption,
+    fontWeight: '600',
   },
   categoriaText: {
     fontSize: SIZES.small,
@@ -613,49 +1017,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: SIZES.h4,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  modalBody: {
-    padding: SIZES.padding,
-    maxHeight: 400,
-  },
-  inputLabel: {
-    fontSize: SIZES.body,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 8,
-    marginTop: 12,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: COLORS.lightGray,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding,
-    fontSize: SIZES.body,
-    color: COLORS.text,
-    backgroundColor: COLORS.background,
-  },
-  selectorContainer: {
-    marginBottom: 16,
-  },
-  selectorButton: {
-    backgroundColor: COLORS.lightGray,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: SIZES.radius,
-    marginRight: 8,
-  },
-  selectorButtonSelected: {
-    backgroundColor: COLORS.primary,
-  },
-  selectorButtonText: {
-    fontSize: SIZES.body,
-    color: COLORS.textSecondary,
-  },
-  selectorButtonTextSelected: {
-    color: COLORS.white,
-    fontWeight: 'bold',
   },
   modalFooter: {
     flexDirection: 'row',
@@ -687,5 +1048,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
 });
+
 
 export default InsumosScreen;

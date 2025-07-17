@@ -8,10 +8,19 @@ import {
   SafeAreaView,
   Alert,
   RefreshControl,
+  Dimensions,
+  Animated,
 } from 'react-native';
-import { COLORS, SIZES, FONTS } from '../../constants/theme';
+import { COLORS, SIZES, SHADOWS, SPACING, ACCESSIBILITY, ANIMATIONS, LAYOUT, TYPOGRAPHY, RESPONSIVE } from '../../constants/theme';
+import { Card, StatCard, InfoCard } from '../../components/common/Card';
+import { Button } from '../../components/common';
+import { useResponsive } from '../../hooks/useResponsive';
+import { ResponsiveGrid, ResponsiveContainer } from '../../components/common/ResponsiveLayout';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function DashboardScreen({ navigation }) {
+  const responsive = useResponsive();
   const [userName, setUserName] = useState('João Silva');
   const [refreshing, setRefreshing] = useState(false);
   const [syncStatus, setSyncStatus] = useState('synced'); // 'synced', 'syncing', 'offline'
@@ -159,38 +168,92 @@ export default function DashboardScreen({ navigation }) {
     }
   };
 
-  const renderKPICard = (title, value, onPress) => (
-    <TouchableOpacity style={styles.kpiCard} onPress={onPress}>
-      <Text style={styles.kpiTitle}>{title}</Text>
-      <Text style={styles.kpiValue}>{value}</Text>
-    </TouchableOpacity>
-  );
-
-  const renderQuickActionButton = (title, action) => (
-    <TouchableOpacity
-      style={styles.quickActionButton}
-      onPress={() => handleQuickActionPress(action)}
+  // Renderizar cards de KPI com novo design
+  const renderKPICard = (title, value, onPress, icon, trend) => (
+    <Card
+      onPress={onPress}
+      style={styles.kpiCard}
+      shadow="medium"
+      accessibilityLabel={`${title}: ${value}`}
     >
-      <Text style={styles.quickActionText}>{title}</Text>
+      <View style={styles.kpiHeader}>
+        <Text style={styles.kpiIcon}>{icon}</Text>
+        {trend && (
+          <View style={[styles.trendIndicator, { backgroundColor: trend > 0 ? COLORS.success : COLORS.error }]}>
+            <Text style={styles.trendText}>{trend > 0 ? '↗' : '↘'}</Text>
+          </View>
+        )}
+      </View>
+      <Text style={[styles.kpiTitle, { 
+        fontSize: responsive.isSmallScreen ? RESPONSIVE.fontSize.small.caption : SIZES.caption,
+        lineHeight: ACCESSIBILITY.text.lineHeight * (responsive.isSmallScreen ? RESPONSIVE.fontSize.small.caption : SIZES.caption),
+      }]}>{title}</Text>
+      <Text style={[styles.kpiValue, {
+        fontSize: responsive.isSmallScreen ? RESPONSIVE.fontSize.small.h4 : SIZES.h4,
+        lineHeight: ACCESSIBILITY.text.lineHeight * (responsive.isSmallScreen ? RESPONSIVE.fontSize.small.h4 : SIZES.h4),
+      }]}>{value}</Text>
+    </Card>
+  );
+
+  // Renderizar ações rápidas com melhor design
+  const renderQuickAction = (title, action, icon, bgColor = COLORS.primary) => (
+    <TouchableOpacity
+      style={[styles.quickActionContainer, { backgroundColor: bgColor }]}
+      onPress={() => handleQuickActionPress(action)}
+      accessibilityLabel={`Ação rápida: ${title}`}
+      accessibilityRole="button"
+      activeOpacity={0.8}
+    >
+      <View style={styles.quickActionButton}>
+        <Text style={styles.quickActionIcon}>{icon}</Text>
+        <Text style={styles.quickActionText}>{title}</Text>
+      </View>
     </TouchableOpacity>
   );
 
+  // Renderizar item de atividade melhorado
   const renderActivityItem = (activity) => (
-    <TouchableOpacity
+    <Card
       key={activity.id}
-      style={styles.activityItem}
       onPress={() => handleActivityPress(activity)}
+      style={styles.activityCard}
+      shadow="small"
+      accessibilityLabel={`Atividade: ${activity.descricao}`}
     >
       <View style={styles.activityHeader}>
-        <Text style={styles.activityType}>{activity.tipo}</Text>
-        <Text style={styles.activityDate}>{activity.data}</Text>
+        <View style={styles.activityTypeContainer}>
+          <Text style={styles.activityTypeIcon}>{getActivityIcon(activity.tipo)}</Text>
+          <Text style={styles.activityType}>{activity.tipo}</Text>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(activity.status) }]}>
+          <Text style={styles.statusText}>{activity.status}</Text>
+        </View>
       </View>
       <Text style={styles.activityDescription}>{activity.descricao}</Text>
-      <Text style={[styles.activityStatus, { color: getStatusColor(activity.status) }]}>
-        {activity.status}
-      </Text>
-    </TouchableOpacity>
+      <View style={styles.activityFooter}>
+        <Text style={styles.activityDate}>{formatDate(activity.data)}</Text>
+        <TouchableOpacity style={styles.activityAction}>
+          <Text style={styles.activityActionText}>Ver detalhes</Text>
+        </TouchableOpacity>
+      </View>
+    </Card>
   );
+
+  // Funções auxiliares
+  const getActivityIcon = (tipo) => {
+    switch (tipo) {
+      case 'Aplicação': return '🌱';
+      case 'Monitoramento': return '📊';
+      case 'Colheita': return '🌾';
+      case 'Irrigação': return '💧';
+      default: return '📋';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -205,62 +268,103 @@ export default function DashboardScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <ScrollView
         style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
         }
       >
-        {/* Header */}
+        {/* Header com cor sólida */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Olá, {userName}!</Text>
-            <View style={styles.syncContainer}>
-              <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor() }]} />
-              <Text style={styles.syncText}>{getSyncStatusText()}</Text>
+          <View style={styles.headerContent}>
+            <View style={styles.userInfo}>
+              <Text style={styles.greeting}>Olá, {userName}!</Text>
+              <Text style={styles.subtitle}>Bem-vindo ao CoffeeHub</Text>
+              <View style={styles.syncContainer}>
+                <View style={[styles.syncIndicator, { backgroundColor: getSyncStatusColor() }]} />
+                <Text style={styles.syncText}>{getSyncStatusText()}</Text>
+              </View>
             </View>
-          </View>
-          <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            <Text style={styles.notificationIcon}>🔔</Text>
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>3</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* KPI Cards */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Resumo</Text>
-          <View style={styles.kpiGrid}>
-            {renderKPICard('Produção Total', kpiData.producaoTotal, () => handleKPIPress('produção'))}
-            {renderKPICard('Talhões Ativos', kpiData.talhoesAtivos.toString(), () => handleKPIPress('talhões'))}
-            {renderKPICard('Lotes Ativos', kpiData.lotesAtivos.toString(), () => handleKPIPress('lotes'))}
-            {renderKPICard('Pendências', kpiData.pendencias.toString(), () => handleKPIPress('pendências'))}
-            {renderKPICard('Clima Atual', kpiData.climaAtual, () => handleKPIPress('clima'))}
-            {renderKPICard('Equipamentos OK', kpiData.equipamentosOperacionais.toString(), () => handleKPIPress('equipamentos'))}
+            <TouchableOpacity 
+              style={styles.notificationButton} 
+              onPress={handleNotificationPress}
+              accessibilityLabel="Notificações"
+              accessibilityRole="button"
+            >
+              <Text style={styles.notificationIcon}>🔔</Text>
+              {kpiData.pendencias > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>{kpiData.pendencias}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Quick Actions */}
+        {/* KPI Cards Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ações Rápidas</Text>
-          <View style={styles.quickActionsGrid}>
-            {renderQuickActionButton('Nova Atividade', 'nova_atividade')}
-            {renderQuickActionButton('Ver Lotes', 'ver_lotes')}
-            {renderQuickActionButton('Operação Financeira', 'operacao_financeira')}
-            {renderQuickActionButton('Relatórios', 'relatorios')}
-            {renderQuickActionButton('Meu Perfil', 'meu_perfil')}
-            {renderQuickActionButton('Funcionários', 'funcionarios')}
-            {renderQuickActionButton('Insumos', 'insumos')}
-            {renderQuickActionButton('Certificações', 'certificacoes')}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Resumo da Propriedade</Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Relatórios')}
+              style={styles.seeAllButton}
+            >
+              <Text style={styles.seeAllText}>Ver todos</Text>
+            </TouchableOpacity>
           </View>
+        <ResponsiveGrid 
+          numColumns={2}
+          spacing={responsive.isSmallScreen ? SPACING.xs : SPACING.sm}
+          style={styles.kpiGridSmallScreen}
+          containerPadding={responsive.isSmallScreen ? SPACING.xs : SPACING.md}
+        >
+            {renderKPICard('Produção Total', kpiData.producaoTotal, () => handleKPIPress('produção'), '🌾', 5)}
+            {renderKPICard('Talhões Ativos', kpiData.talhoesAtivos.toString(), () => handleKPIPress('talhões'), '🌱', 2)}
+            {renderKPICard('Lotes Ativos', kpiData.lotesAtivos.toString(), () => handleKPIPress('lotes'), '📦', 3)}
+            {renderKPICard('Pendências', kpiData.pendencias.toString(), () => handleKPIPress('pendências'), '⚠️', -1)}
+          </ResponsiveGrid>
         </View>
 
-        {/* Recent Activities */}
+        {/* Quick Actions Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Atividades Recentes</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Ações Rápidas</Text>
+          </View>
+          <ResponsiveGrid 
+          numColumns={2}
+          spacing={responsive.isSmallScreen ? SPACING.xs * 0.8 : responsive.spacing * 0.5}
+          style={styles.quickActionsGridSmallScreen}
+          containerPadding={responsive.isSmallScreen ? SPACING.xs : SPACING.md}
+          >
+            {renderQuickAction('Nova Atividade', 'nova_atividade', '➕', COLORS.primary)}
+            {renderQuickAction('Ver Lotes', 'ver_lotes', '📦', COLORS.secondary)}
+            {renderQuickAction('Monitoramento', 'monitoramento', '📊', COLORS.accent)}
+            {renderQuickAction('Relatórios', 'relatorios', '📈', COLORS.success)}
+          </ResponsiveGrid>
+        </View>
+
+        {/* Recent Activities Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Atividades Recentes</Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Atividades')}
+              style={styles.seeAllButton}
+            >
+              <Text style={styles.seeAllText}>Ver todas</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.activitiesList}>
             {recentActivities.map(renderActivityItem)}
           </View>
         </View>
+
+        {/* Footer spacing */}
+        <View style={styles.footer} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -274,18 +378,36 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  // Header melhorado
   header: {
+    paddingTop: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.lg,
+    borderBottomLeftRadius: SIZES.radiusLarge,
+    borderBottomRightRadius: SIZES.radiusLarge,
+    backgroundColor: COLORS.primary,
+    ...SHADOWS.large,
+  },
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: SIZES.padding,
-    backgroundColor: COLORS.primary,
+    alignItems: 'flex-start',
+  },
+  userInfo: {
+    flex: 1,
   },
   greeting: {
-    fontSize: SIZES.h2,
-    fontWeight: 'bold',
-    color: COLORS.background,
-    marginBottom: 4,
+    fontSize: SIZES.h1,
+    fontWeight: '700',
+    color: COLORS.white,
+    marginBottom: SPACING.xs,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h1,
+  },
+  subtitle: {
+    fontSize: SIZES.body,
+    color: COLORS.whiteOpacity,
+    marginBottom: SPACING.sm,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   syncContainer: {
     flexDirection: 'row',
@@ -295,132 +417,229 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 6,
+    marginRight: SPACING.xs,
   },
   syncText: {
     fontSize: SIZES.caption,
-    color: COLORS.background,
+    color: COLORS.whiteOpacity,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   notificationButton: {
     position: 'relative',
-    padding: 8,
+    padding: SPACING.sm,
+    borderRadius: SIZES.radiusLarge,
+    backgroundColor: COLORS.whiteOpacity,
+    ...SHADOWS.small,
+    minHeight: ACCESSIBILITY.touchTarget.minHeight,
+    minWidth: ACCESSIBILITY.touchTarget.minWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   notificationIcon: {
     fontSize: 24,
-    color: COLORS.background,
+    color: COLORS.primary,
   },
   notificationBadge: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: -2,
+    right: -2,
     backgroundColor: COLORS.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.white,
   },
   notificationBadgeText: {
-    color: COLORS.background,
+    color: COLORS.white,
     fontSize: SIZES.small,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
+  
+  // Seções
   section: {
-    padding: SIZES.padding,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.lg,
+    marginBottom: SPACING.sm,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
   },
   sectionTitle: {
     fontSize: SIZES.h3,
-    fontWeight: 'bold',
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
     color: COLORS.text,
-    marginBottom: SIZES.margin,
+    lineHeight: TYPOGRAPHY.lineHeights.tight * SIZES.h3,
   },
+  seeAllButton: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  seeAllText: {
+    fontSize: SIZES.body,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  
+  // KPI Cards
   kpiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    // ResponsiveGrid handles layout, no need for manual flexDirection/flexWrap
+  },
+  kpiGridSmallScreen: {
+    // ResponsiveGrid handles layout, no need for manual flexDirection/flexWrap
   },
   kpiCard: {
-    width: '48%',
+    padding: SPACING.md,
+    borderRadius: SIZES.radiusLarge,
     backgroundColor: COLORS.surface,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.margin / 2,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    minHeight: 100,
+    justifyContent: 'space-between',
   },
-  kpiTitle: {
+  kpiHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  kpiIcon: {
+    fontSize: 24,
+  },
+  trendIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  trendText: {
+    fontSize: 12,
+    color: COLORS.white,
+    fontWeight: '700',
+  },
+kpiTitle: {
     fontSize: SIZES.caption,
     color: COLORS.textSecondary,
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
+    fontWeight: TYPOGRAPHY.fontWeights.medium,
   },
   kpiValue: {
     fontSize: SIZES.h4,
-    fontWeight: 'bold',
+    fontWeight: TYPOGRAPHY.fontWeights.bold,
     color: COLORS.primary,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h4,
   },
+  
+  // Quick Actions
   quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    // ResponsiveGrid handles layout, no need for manual flexDirection/flexWrap
+  },
+  quickActionsGridSmallScreen: {
+    // ResponsiveGrid handles layout, no need for manual flexDirection/flexWrap
+  },
+  quickActionContainer: {
+    borderRadius: SIZES.radiusLarge,
+    overflow: 'hidden',
+    ...SHADOWS.medium,
+    minHeight: 90,
   },
   quickActionButton: {
-    width: '48%',
-    backgroundColor: COLORS.primaryLight,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.margin / 2,
+    padding: SPACING.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 60,
+    flex: 1,
+  },
+  quickActionIcon: {
+    fontSize: 28,
+    marginBottom: SPACING.xs,
   },
   quickActionText: {
     fontSize: SIZES.body,
-    fontWeight: 'bold',
-    color: COLORS.background,
+    fontWeight: '600',
+    color: COLORS.white,
     textAlign: 'center',
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
+  
+  // Activities
   activitiesList: {
-    backgroundColor: COLORS.surface,
-    borderRadius: SIZES.radius,
-    padding: SIZES.padding / 2,
+    marginTop: SPACING.xs,
   },
-  activityItem: {
-    backgroundColor: COLORS.background,
-    padding: SIZES.padding,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.margin / 2,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+  activityCard: {
+    padding: SPACING.md,
+    borderRadius: SIZES.radiusLarge,
+    backgroundColor: COLORS.surface,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
   activityHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: SPACING.sm,
+  },
+  activityTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  activityTypeIcon: {
+    fontSize: 20,
+    marginRight: SPACING.xs,
   },
   activityType: {
     fontSize: SIZES.body,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: COLORS.primary,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
-  activityDate: {
+  statusBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: SIZES.radiusLarge,
+  },
+  statusText: {
     fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
+    fontWeight: '600',
+    color: COLORS.white,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   activityDescription: {
     fontSize: SIZES.body,
     color: COLORS.text,
-    marginBottom: 4,
+    marginBottom: SPACING.sm,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
-  activityStatus: {
+  activityFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  activityDate: {
     fontSize: SIZES.caption,
-    fontWeight: 'bold',
+    color: COLORS.textSecondary,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
+  },
+  activityAction: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  activityActionText: {
+    fontSize: SIZES.caption,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  
+  // Footer
+  footer: {
+    height: SPACING.xl,
+    backgroundColor: COLORS.background,
   },
 });
 

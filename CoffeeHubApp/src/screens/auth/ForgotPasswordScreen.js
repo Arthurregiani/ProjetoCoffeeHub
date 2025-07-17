@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Alert, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { COLORS } from '../../constants/theme';
+import { COLORS, SIZES, SHADOWS, SPACING, ACCESSIBILITY } from '../../constants/theme';
+import { Card } from '../../components/common/Card';
+import { Button } from '../../components/common/Button';
+import { Input } from '../../components/common/Input';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -44,185 +47,211 @@ export default function ForgotPasswordScreen({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={COLORS.background} barStyle="dark-content" />
+      
+      <ScrollView 
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBackToLogin} style={styles.backButton}>
-            <Icon name="arrow-back" size={28} color={COLORS.primary} />
+          <TouchableOpacity 
+            onPress={handleBackToLogin} 
+            style={styles.backButton}
+            accessibilityLabel="Voltar para login"
+            accessibilityRole="button"
+          >
+            <Icon name="arrow-back" size={24} color={COLORS.primary} />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>Recuperar Senha</Text>
+          <View style={styles.headerSpacer} />
         </View>
 
-        {/* Ícone */}
-        <View style={styles.iconContainer}>
-          <View style={styles.iconPlaceholder}>
-            <Icon name="lock-reset" size={80} color={COLORS.primary} />
+        {/* Conteúdo principal */}
+        <View style={styles.content}>
+          {/* Ícone */}
+          <View style={styles.iconContainer}>
+            <View style={styles.iconPlaceholder}>
+              <Icon name="lock-reset" size={60} color={COLORS.primary} />
+            </View>
+          </View>
+
+          <Text style={styles.title}>Esqueceu a senha?</Text>
+          <Text style={styles.subtitle}>
+            Não se preocupe! Digite seu e-mail abaixo e enviaremos instruções para redefinir sua senha.
+          </Text>
+
+          {/* Formulário */}
+          <Card style={styles.formCard} shadow="medium">
+            <Input
+              label="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Digite seu e-mail"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              disabled={isLoading}
+              leftIcon={<Icon name="email" size={20} color={COLORS.textSecondary} />}
+              accessibilityLabel="Campo de e-mail"
+              accessibilityHint="Digite seu endereço de e-mail para recuperar a senha"
+            />
+
+            <Button
+              title={isLoading ? "Enviando..." : "Enviar Instruções"}
+              onPress={handleResetPassword}
+              disabled={isLoading}
+              loading={isLoading}
+              style={styles.resetButton}
+              accessibilityLabel="Enviar instruções de recuperação"
+            />
+          </Card>
+
+          {/* Informações adicionais */}
+          <Card style={styles.infoCard} shadow="small">
+            <View style={styles.infoHeader}>
+              <Icon name="info" size={20} color={COLORS.info} />
+              <Text style={styles.infoTitle}>Informações importantes</Text>
+            </View>
+            <Text style={styles.infoText}>
+              Verifique sua caixa de entrada e pasta de spam. O e-mail pode levar alguns minutos para chegar.
+            </Text>
+          </Card>
+
+          {/* Link para voltar ao Login */}
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginText}>Lembrou da senha?</Text>
+            <Button
+              title="Fazer Login"
+              variant="ghost"
+              size="small"
+              onPress={handleBackToLogin}
+              style={styles.loginButton}
+              accessibilityLabel="Voltar para tela de login"
+            />
           </View>
         </View>
-
-        <Text style={styles.title}>Esqueceu a senha?</Text>
-        <Text style={styles.subtitle}>
-          Não se preocupe! Digite seu e-mail abaixo e enviaremos instruções para redefinir sua senha.
-        </Text>
-
-        {/* Campo de E-mail */}
-        <View style={styles.inputContainer}>
-          <Icon name="email" size={24} color={COLORS.textSecondary} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Digite seu e-mail"
-            placeholderTextColor={COLORS.textSecondary}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-            editable={!isLoading}
-          />
-        </View>
-
-        {/* Botão de Enviar */}
-        <TouchableOpacity 
-          style={[styles.resetButton, isLoading && styles.resetButtonDisabled]} 
-          onPress={handleResetPassword}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Text style={styles.resetButtonText}>Enviando...</Text>
-          ) : (
-            <Text style={styles.resetButtonText}>Enviar Instruções</Text>
-          )}
-        </TouchableOpacity>
-
-        {/* Informações adicionais */}
-        <View style={styles.infoContainer}>
-          <Icon name="info" size={20} color={COLORS.textSecondary} />
-          <Text style={styles.infoText}>
-            Verifique sua caixa de entrada e pasta de spam. O e-mail pode levar alguns minutos para chegar.
-          </Text>
-        </View>
-
-        {/* Link para voltar ao Login */}
-        <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>Lembrou da senha?</Text>
-          <TouchableOpacity onPress={handleBackToLogin}>
-            <Text style={styles.loginButtonText}> Fazer Login</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: COLORS.background,
-  },
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: COLORS.background,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: SPACING.md,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
-    marginTop: 20,
+    justifyContent: 'space-between',
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.sm,
   },
   backButton: {
-    padding: 5,
+    padding: SPACING.sm,
+    borderRadius: SIZES.radiusLarge,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
+    minHeight: ACCESSIBILITY.touchTarget.minHeight,
+    minWidth: ACCESSIBILITY.touchTarget.minWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: SIZES.h3,
+    fontWeight: '600',
+    color: COLORS.text,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h3,
+  },
+  headerSpacer: {
+    width: ACCESSIBILITY.touchTarget.minWidth,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: SPACING.sm,
   },
   iconContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: SPACING.xl,
   },
   iconPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: COLORS.surface,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.primaryOpacity,
     justifyContent: 'center',
     alignItems: 'center',
+    ...SHADOWS.medium,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.textPrimary,
+    fontSize: SIZES.h2,
+    fontWeight: '700',
+    color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 15,
+    marginBottom: SPACING.sm,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h2,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: SIZES.body,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
+    marginBottom: SPACING.xl,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
+    paddingHorizontal: SPACING.sm,
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    height: 50,
-    borderColor: COLORS.textSecondary,
-    borderWidth: 1,
-    borderRadius: 10,
-    marginBottom: 30,
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.surface,
-  },
-  icon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    color: COLORS.textPrimary,
-    fontSize: 16,
+  formCard: {
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    borderRadius: SIZES.radiusLarge,
   },
   resetButton: {
-    width: '100%',
-    height: 50,
-    backgroundColor: COLORS.primary,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 30,
+    marginTop: SPACING.md,
   },
-  resetButtonDisabled: {
-    backgroundColor: COLORS.textSecondary,
-  },
-  resetButtonText: {
-    color: COLORS.background,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  infoContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+  infoCard: {
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    borderRadius: SIZES.radiusLarge,
     backgroundColor: COLORS.surface,
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 30,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.info,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  infoTitle: {
+    fontSize: SIZES.body,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginLeft: SPACING.sm,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   infoText: {
-    flex: 1,
+    fontSize: SIZES.caption,
     color: COLORS.textSecondary,
-    fontSize: 14,
-    marginLeft: 10,
-    lineHeight: 20,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    alignItems: 'center',
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
   loginText: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
-  loginButtonText: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
+  loginButton: {
+    marginLeft: SPACING.xs,
   },
 });
 

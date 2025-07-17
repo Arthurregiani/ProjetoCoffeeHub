@@ -1,18 +1,68 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, SafeAreaView, StatusBar } from 'react-native';
+import { COLORS, SIZES, SHADOWS, SPACING, ACCESSIBILITY } from '../../constants/theme';
+import { Card } from '../../components/common/Card';
+import { Button } from '../../components/common/Button';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const PropertyCard = ({ property, onPress }) => (
-  <TouchableOpacity style={styles.card} onPress={onPress}>
-    <Text style={styles.cardTitle}>{property.name}</Text>
-    <Text style={styles.cardLocation}>{property.location}</Text>
-    <Text style={styles.cardInfo}>Área Total: {property.area} ha</Text>
-    <Text style={styles.cardInfo}>Talhões: {property.plots}</Text>
-    <Text style={styles.cardInfo}>Produção: {property.production} sacas</Text>
-    <Text style={styles.cardStatus}>Status: {property.status}</Text>
-  </TouchableOpacity>
-);
+const PropertyCard = ({ property, onPress }) => {
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Ativa': return COLORS.success;
+      case 'Inativa': return COLORS.error;
+      case 'Manutenção': return COLORS.warning;
+      default: return COLORS.textSecondary;
+    }
+  };
+
+  return (
+    <Card
+      onPress={onPress}
+      style={styles.propertyCard}
+      shadow="medium"
+      accessibilityLabel={`Propriedade: ${property.name}`}
+      accessibilityHint={`Toque para ver detalhes da propriedade`}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.cardTitleContainer}>
+          <Text style={styles.cardIcon}>🏡</Text>
+          <View style={styles.cardTitleInfo}>
+            <Text style={styles.cardTitle}>{property.name}</Text>
+            <Text style={styles.cardLocation}>{property.location}</Text>
+          </View>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(property.status) }]}>
+          <Text style={styles.statusText}>{property.status}</Text>
+        </View>
+      </View>
+      
+      <View style={styles.cardStats}>
+        <View style={styles.statItem}>
+          <Icon name="landscape" size={20} color={COLORS.primary} />
+          <Text style={styles.statValue}>{property.area} ha</Text>
+          <Text style={styles.statLabel}>Área Total</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Icon name="grid-view" size={20} color={COLORS.secondary} />
+          <Text style={styles.statValue}>{property.plots}</Text>
+          <Text style={styles.statLabel}>Talhões</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Icon name="inventory" size={20} color={COLORS.accent} />
+          <Text style={styles.statValue}>{property.production}</Text>
+          <Text style={styles.statLabel}>Sacas</Text>
+        </View>
+      </View>
+      
+      <View style={styles.cardFooter}>
+        <TouchableOpacity style={styles.cardAction}>
+          <Text style={styles.cardActionText}>Ver detalhes</Text>
+          <Icon name="arrow-forward" size={16} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
+    </Card>
+  );
+};
 
 export default function PropriedadesScreen({ navigation }) {
   const properties = [
@@ -31,35 +81,81 @@ export default function PropriedadesScreen({ navigation }) {
     navigation.navigate('PropertyDetails', { property });
   };
 
-  return (
-    <View style={styles.container}>
+return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.surface} />
+      
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Propriedades</Text>
-        <TouchableOpacity onPress={() => console.log('Buscar')}>
-          <Icon name="search" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => console.log('Buscar')} 
+            accessibilityLabel="Buscar propriedades"
+          >
+            <Icon name="search" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => console.log('Filtrar')} 
+            accessibilityLabel="Filtrar propriedades"
+          >
+            <Icon name="filter-list" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.filterSortContainer}>
-        <TouchableOpacity style={styles.filterSortButton} onPress={() => console.log('Filtrar')}>
-          <Text style={styles.filterSortButtonText}>Filtrar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterSortButton} onPress={() => console.log('Ordenar')}>
-          <Text style={styles.filterSortButtonText}>Ordenar</Text>
-        </TouchableOpacity>
+      {/* Quick Stats */}
+      <View style={styles.quickStats}>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{properties.length}</Text>
+          <Text style={styles.statText}>Propriedades</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{properties.filter(p => p.status === 'Ativa').length}</Text>
+          <Text style={styles.statText}>Ativas</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{properties.reduce((sum, p) => sum + p.area, 0)}</Text>
+          <Text style={styles.statText}>Hectares</Text>
+        </View>
       </View>
 
+      {/* Properties List */}
       <FlatList
         data={properties}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PropertyCard property={item} onPress={() => handlePropertyPress(item)} />}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIcon}>
+              <Icon name="domain" size={64} color={COLORS.textSecondary} />
+            </View>
+            <Text style={styles.emptyText}>Nenhuma propriedade cadastrada</Text>
+            <Text style={styles.emptySubtext}>Adicione sua primeira propriedade para começar</Text>
+            <Button
+              title="Adicionar Propriedade"
+              onPress={handleAddProperty}
+              style={styles.emptyButton}
+              size="small"
+            />
+          </View>
+        }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={handleAddProperty}>
-        <Icon name="add" size={30} color={COLORS.white} />
+      {/* Floating Action Button */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={handleAddProperty} 
+        accessibilityLabel="Adicionar nova propriedade"
+        accessibilityRole="button"
+      >
+        <Icon name="add" size={28} color={COLORS.white} />
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -68,81 +164,217 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  // Header Styles
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: COLORS.white,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: COLORS.border,
+    ...SHADOWS.small,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: SIZES.h1,
+    fontWeight: '700',
     color: COLORS.text,
+    letterSpacing: 0.5,
   },
-  filterSortContainer: {
+  headerActions: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-    backgroundColor: COLORS.lightGray,
+    gap: SPACING.sm,
   },
-  filterSortButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.primary,
-    borderRadius: 5,
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...SHADOWS.small,
   },
-  filterSortButtonText: {
-    color: COLORS.white,
-    fontWeight: 'bold',
+  
+  // Quick Stats Styles
+  quickStats: {
+    flexDirection: 'row',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    gap: SPACING.sm,
   },
-  listContent: {
-    padding: 16,
-  },
-  card: {
+  statCard: {
+    flex: 1,
     backgroundColor: COLORS.white,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: SIZES.radius,
+    padding: SPACING.md,
+    alignItems: 'center',
+    ...SHADOWS.small,
+  },
+  statNumber: {
+    fontSize: SIZES.h2,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: SPACING.xs,
+  },
+  statText: {
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  
+  // List Styles
+  listContent: {
+    padding: SPACING.md,
+    paddingBottom: 100, // Space for FAB
+  },
+  
+  // Property Card Styles
+  propertyCard: {
+    marginBottom: SPACING.md,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.md,
+  },
+  cardTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  cardIcon: {
+    fontSize: 32,
+    marginRight: SPACING.sm,
+  },
+  cardTitleInfo: {
+    flex: 1,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: SIZES.h3,
+    fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 5,
+    marginBottom: SPACING.xs,
   },
   cardLocation: {
-    fontSize: 14,
-    color: COLORS.gray,
-    marginBottom: 5,
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    fontWeight: '400',
   },
-  cardInfo: {
-    fontSize: 14,
+  statusBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: SIZES.radius / 2,
+    alignSelf: 'flex-start',
+  },
+  statusText: {
+    fontSize: SIZES.caption,
+    color: COLORS.white,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  
+  // Card Stats Styles
+  cardStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  statValue: {
+    fontSize: SIZES.h4,
+    fontWeight: '700',
     color: COLORS.text,
   },
-  cardStatus: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginTop: 5,
+  statLabel: {
+    fontSize: SIZES.caption,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+    textAlign: 'center',
   },
+  
+  // Card Footer Styles
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  cardAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+  },
+  cardActionText: {
+    fontSize: SIZES.body,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  
+  // Empty State Styles
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: SPACING.xl * 2,
+    paddingHorizontal: SPACING.md,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  emptyText: {
+    fontSize: SIZES.h3,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+    lineHeight: 24,
+  },
+  emptyButton: {
+    minWidth: 200,
+  },
+  
+  // Floating Action Button
   fab: {
     position: 'absolute',
-    width: 60,
-    height: 60,
+    width: 56,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    right: 30,
-    bottom: 30,
-    backgroundColor: COLORS.accent,
-    borderRadius: 30,
-    elevation: 8,
+    right: SPACING.md,
+    bottom: SPACING.md,
+    backgroundColor: COLORS.primary,
+    borderRadius: 28,
+    ...SHADOWS.large,
   },
 });

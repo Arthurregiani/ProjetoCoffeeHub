@@ -1,33 +1,87 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, SafeAreaView, StatusBar, Animated, Dimensions } from 'react-native';
+import { COLORS, SIZES, SHADOWS, SPACING, ACCESSIBILITY, RESPONSIVE } from '../../constants/theme';
+import { Card } from '../../components/common/Card';
+import { Button } from '../../components/common/Button';
+import { useResponsive } from '../../hooks/useResponsive';
+import { ResponsiveGrid, ResponsiveContainer } from '../../components/common/ResponsiveLayout';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const ActivityCard = ({ activity, onPress }) => (
-  <TouchableOpacity style={styles.card} onPress={onPress}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.cardTitle}>{activity.type}</Text>
-      <Text style={styles.cardDate}>{activity.date}</Text>
-    </View>
-    <Text style={styles.cardLocation}>{activity.location}</Text>
-    <Text style={styles.cardDescription}>{activity.description}</Text>
-    <View style={styles.cardFooter}>
-      <Text style={styles.cardStatus}>{activity.status}</Text>
-      {activity.trackingCode && (
-        <Text style={styles.cardTrackingCode}>#{activity.trackingCode}</Text>
-      )}
-    </View>
-  </TouchableOpacity>
-);
+const { width: screenWidth } = Dimensions.get('window');
+
+const ActivityCard = ({ activity, onPress }) => {
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Concluído': return COLORS.success;
+      case 'Em andamento': return COLORS.warning;
+      case 'Pendente': return COLORS.error;
+      case 'Agendado': return COLORS.info;
+      default: return COLORS.textSecondary;
+    }
+  };
+
+  const getActivityIcon = (type) => {
+    if (type.includes('Monitoramento')) return '📊';
+    if (type.includes('Aplicação')) return '🌱';
+    if (type.includes('Colheita')) return '🌾';
+    if (type.includes('Irrigação')) return '💧';
+    if (type.includes('Processamento')) return '⚙️';
+    if (type.includes('Classificação')) return '📋';
+    if (type.includes('Manutenção')) return '🔧';
+    if (type.includes('Treinamento')) return '🎓';
+    if (type.includes('Compra') || type.includes('Venda')) return '💰';
+    return '📝';
+  };
+
+  return (
+    <Card
+      onPress={onPress}
+      style={styles.activityCard}
+      shadow="medium"
+      accessibilityLabel={`Atividade: ${activity.type}`}
+      accessibilityHint={`Toque para ver detalhes da atividade`}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.cardTitleContainer}>
+          <Text style={styles.cardIcon}>{getActivityIcon(activity.type)}</Text>
+          <View style={styles.cardTitleInfo}>
+            <Text style={styles.cardTitle}>{activity.type}</Text>
+            <Text style={styles.cardLocation}>{activity.location}</Text>
+          </View>
+        </View>
+        <View style={styles.cardDateContainer}>
+          <Text style={styles.cardDate}>{activity.date}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(activity.status) }]}>
+            <Text style={styles.statusText}>{activity.status}</Text>
+          </View>
+        </View>
+      </View>
+      <Text style={styles.cardDescription}>{activity.description}</Text>
+      <View style={styles.cardFooter}>
+        {activity.trackingCode && (
+          <View style={styles.trackingCodeContainer}>
+            <Icon name="qr-code" size={16} color={COLORS.textSecondary} />
+            <Text style={styles.cardTrackingCode}>#{activity.trackingCode}</Text>
+          </View>
+        )}
+        <TouchableOpacity style={styles.cardAction}>
+          <Text style={styles.cardActionText}>Ver detalhes</Text>
+          <Icon name="arrow-forward" size={16} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
+    </Card>
+  );
+};
 
 const ActivityTypeModal = ({ visible, onClose, onSelectType }) => {
+  const responsive = useResponsive();
   const activityTypes = [
-    { id: 'monitoring', name: 'Monitoramento', icon: 'visibility' },
-    { id: 'application', name: 'Aplicação', icon: 'spray' },
-    { id: 'harvest', name: 'Colheita', icon: 'agriculture' },
-    { id: 'irrigation', name: 'Irrigação', icon: 'water-drop' },
-    { id: 'management', name: 'Manejo', icon: 'build' },
-    { id: 'financial', name: 'Operação Financeira', icon: 'attach-money' },
+    { id: 'monitoring', name: 'Monitoramento', icon: 'visibility', emoji: '📊', color: COLORS.info },
+    { id: 'application', name: 'Aplicação', icon: 'spray', emoji: '🌱', color: COLORS.success },
+    { id: 'harvest', name: 'Colheita', icon: 'agriculture', emoji: '🌾', color: COLORS.warning },
+    { id: 'irrigation', name: 'Irrigação', icon: 'water-drop', emoji: '💧', color: COLORS.info },
+    { id: 'management', name: 'Manejo', icon: 'build', emoji: '🔧', color: COLORS.secondary },
+    { id: 'financial', name: 'Operação Financeira', icon: 'attach-money', emoji: '💰', color: COLORS.accent },
   ];
 
   return (
@@ -35,24 +89,37 @@ const ActivityTypeModal = ({ visible, onClose, onSelectType }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Selecionar Tipo de Atividade</Text>
-            <TouchableOpacity onPress={onClose}>
+            <Text style={styles.modalTitle}>Nova Atividade</Text>
+            <TouchableOpacity 
+              onPress={onClose}
+              style={styles.modalCloseButton}
+              accessibilityLabel="Fechar modal"
+              accessibilityRole="button"
+            >
               <Icon name="close" size={24} color={COLORS.text} />
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={activityTypes}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+          <Text style={styles.modalSubtitle}>Selecione o tipo de atividade que deseja criar</Text>
+          <ResponsiveGrid
+            numColumns={responsive.isSmallScreen ? 1 : 2}
+            spacing={responsive.spacing * 0.5}
+            style={styles.modalGrid}
+          >
+            {activityTypes.map((item) => (
               <TouchableOpacity
-                style={styles.modalItem}
+                key={item.id}
+                style={[styles.modalItem, { borderLeftColor: item.color }]}
                 onPress={() => onSelectType(item)}
+                accessibilityLabel={`Criar atividade de ${item.name}`}
+                accessibilityRole="button"
               >
-                <Icon name={item.icon} size={24} color={COLORS.primary} />
+                <View style={[styles.modalItemIcon, { backgroundColor: item.color + '20' }]}>
+                  <Text style={styles.modalItemEmoji}>{item.emoji}</Text>
+                </View>
                 <Text style={styles.modalItemText}>{item.name}</Text>
               </TouchableOpacity>
-            )}
-          />
+            ))}
+          </ResponsiveGrid>
         </View>
       </View>
     </Modal>
@@ -153,17 +220,38 @@ export default function AtividadesScreen({ navigation, route }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={COLORS.primary} barStyle="light-content" />
+      
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Atividades</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('ActivityList')}
+            accessibilityLabel="Ver todas as atividades"
+          >
+            <Icon name="list" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('ActivityCalendar')}
+            accessibilityLabel="Ver calendário de atividades"
+          >
+            <Icon name="calendar-today" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
+      {/* Tabs */}
       <View style={styles.tabsContainer}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
           data={tabs}
           keyExtractor={(item) => item}
+          contentContainerStyle={styles.tabsList}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={[
@@ -171,6 +259,8 @@ export default function AtividadesScreen({ navigation, route }) {
                 activeTab === item && styles.activeTab
               ]}
               onPress={() => setActiveTab(item)}
+              accessibilityLabel={`Filtrar por ${item}`}
+              accessibilityRole="button"
             >
               <Text style={[
                 styles.tabText,
@@ -183,6 +273,7 @@ export default function AtividadesScreen({ navigation, route }) {
         />
       </View>
 
+      {/* Activities List */}
       <FlatList
         data={currentActivities}
         keyExtractor={(item) => item.id}
@@ -193,25 +284,41 @@ export default function AtividadesScreen({ navigation, route }) {
           />
         )}
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Icon name="work-off" size={64} color={COLORS.gray} />
+            <View style={styles.emptyIcon}>
+              <Icon name="work-off" size={64} color={COLORS.textSecondary} />
+            </View>
             <Text style={styles.emptyText}>Nenhuma atividade encontrada</Text>
             <Text style={styles.emptySubtext}>Toque no botão + para adicionar uma nova atividade</Text>
+            <Button
+              title="Adicionar Atividade"
+              onPress={handleAddActivity}
+              style={styles.emptyButton}
+              size="small"
+            />
           </View>
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={handleAddActivity}>
-        <Icon name="add" size={30} color={COLORS.white} />
+      {/* Floating Action Button */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={handleAddActivity}
+        accessibilityLabel="Adicionar nova atividade"
+        accessibilityRole="button"
+      >
+        <Icon name="add" size={28} color={COLORS.white} />
       </TouchableOpacity>
 
+      {/* Activity Type Modal */}
       <ActivityTypeModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSelectType={handleSelectActivityType}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -220,161 +327,287 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  // Header
   header: {
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.small,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: SIZES.h2,
+    fontWeight: '700',
     color: COLORS.text,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h2,
   },
+  headerActions: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
+  headerButton: {
+    padding: SPACING.sm,
+    borderRadius: SIZES.radiusLarge,
+    backgroundColor: COLORS.primaryOpacity,
+    ...SHADOWS.small,
+    minHeight: ACCESSIBILITY.touchTarget.minHeight,
+    minWidth: ACCESSIBILITY.touchTarget.minWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Tabs
   tabsContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: COLORS.border,
+    paddingVertical: SPACING.xs,
+  },
+  tabsList: {
+    paddingHorizontal: SPACING.sm,
   },
   tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 4,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginHorizontal: SPACING.xs,
+    borderRadius: SIZES.radiusLarge,
+    minHeight: ACCESSIBILITY.touchTarget.minHeight,
+    justifyContent: 'center',
   },
   activeTab: {
+    backgroundColor: COLORS.primaryOpacity,
     borderBottomWidth: 2,
     borderBottomColor: COLORS.primary,
   },
   tabText: {
-    fontSize: 14,
-    color: COLORS.gray,
+    fontSize: SIZES.caption,
+    color: COLORS.textSecondary,
     fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   activeTabText: {
     color: COLORS.primary,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
+  // Content
   listContent: {
-    padding: 16,
+    padding: SPACING.md,
     flexGrow: 1,
   },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  // Activity Card
+  activityCard: {
+    marginBottom: SPACING.md,
+    borderRadius: SIZES.radiusLarge,
+    padding: SPACING.md,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: SPACING.sm,
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
+  cardTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
   },
-  cardDate: {
-    fontSize: 12,
-    color: COLORS.gray,
+  cardIcon: {
+    fontSize: 24,
+    marginRight: SPACING.sm,
+  },
+  cardTitleInfo: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: SIZES.body,
+    fontWeight: '600',
+    color: COLORS.text,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   cardLocation: {
-    fontSize: 14,
+    fontSize: SIZES.caption,
     color: COLORS.primary,
-    marginBottom: 4,
+    marginTop: SPACING.xs,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
+  },
+  cardDateContainer: {
+    alignItems: 'flex-end',
+  },
+  cardDate: {
+    fontSize: SIZES.caption,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xs,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
+  },
+  statusBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: SIZES.radiusLarge,
+  },
+  statusText: {
+    fontSize: SIZES.caption,
+    fontWeight: '600',
+    color: COLORS.white,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
   cardDescription: {
-    fontSize: 14,
-    color: COLORS.text,
-    marginBottom: 8,
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  cardStatus: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: COLORS.accent,
+  trackingCodeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardTrackingCode: {
-    fontSize: 12,
-    color: COLORS.gray,
+    fontSize: SIZES.caption,
+    color: COLORS.textSecondary,
+    marginLeft: SPACING.xs,
     fontFamily: 'monospace',
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
+  cardAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  cardActionText: {
+    fontSize: SIZES.caption,
+    color: COLORS.primary,
+    fontWeight: '600',
+    marginRight: SPACING.xs,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
+  },
+  // FAB
   fab: {
     position: 'absolute',
     width: 60,
     height: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    right: 30,
-    bottom: 30,
-    backgroundColor: COLORS.accent,
+    right: SPACING.lg,
+    bottom: SPACING.lg,
+    backgroundColor: COLORS.primary,
     borderRadius: 30,
-    elevation: 8,
+    ...SHADOWS.large,
   },
+  // Empty State
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: SPACING.xxl,
+    paddingHorizontal: SPACING.lg,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.gray,
-    marginTop: 16,
-    marginBottom: 8,
+    fontSize: SIZES.h3,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h3,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: COLORS.gray,
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: 40,
+    marginBottom: SPACING.lg,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
   },
+  emptyButton: {
+    marginTop: SPACING.md,
+  },
+  // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: COLORS.blackOpacity,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '70%',
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: SIZES.radiusLarge,
+    borderTopRightRadius: SIZES.radiusLarge,
+    maxHeight: '80%',
+    paddingBottom: SPACING.lg,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    padding: SPACING.lg,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: COLORS.border,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: SIZES.h3,
+    fontWeight: '700',
     color: COLORS.text,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.h3,
+  },
+  modalCloseButton: {
+    padding: SPACING.sm,
+    borderRadius: SIZES.radiusLarge,
+    minHeight: ACCESSIBILITY.touchTarget.minHeight,
+    minWidth: ACCESSIBILITY.touchTarget.minWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSubtitle: {
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.body,
+  },
+  modalGrid: {
+    paddingHorizontal: SPACING.md,
   },
   modalItem: {
-    flexDirection: 'row',
+    flex: 1,
+    margin: SPACING.xs,
+    padding: SPACING.md,
+    borderRadius: SIZES.radiusLarge,
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderLeftWidth: 4,
+    minHeight: 100,
+    justifyContent: 'center',
+    ...SHADOWS.small,
+  },
+  modalItemIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.sm,
+  },
+  modalItemEmoji: {
+    fontSize: 24,
   },
   modalItemText: {
-    fontSize: 16,
+    fontSize: SIZES.caption,
     color: COLORS.text,
-    marginLeft: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: ACCESSIBILITY.text.lineHeight * SIZES.caption,
   },
 });
